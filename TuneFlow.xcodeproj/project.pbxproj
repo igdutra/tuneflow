@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		927CF9C12F884B790047A6B1 /* TuneAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 927CF9C02F884B790047A6B1 /* TuneAPI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		92CEEDAF2F883F7200C74A6A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -39,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				927CF9C12F884B790047A6B1 /* TuneAPI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +95,7 @@
 			);
 			name = TuneFlow;
 			packageProductDependencies = (
+				927CF9C02F884B790047A6B1 /* TuneAPI */,
 			);
 			productName = TuneFlow;
 			productReference = 92CEED9F2F883F7000C74A6A /* TuneFlow.app */;
@@ -146,6 +152,9 @@
 			);
 			mainGroup = 92CEED962F883F7000C74A6A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				927CF9BF2F884B790047A6B1 /* XCLocalSwiftPackageReference "Packages/TuneAPI" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 92CEEDA02F883F7000C74A6A /* Products */;
 			projectDirPath = "";
@@ -460,6 +469,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		927CF9BF2F884B790047A6B1 /* XCLocalSwiftPackageReference "Packages/TuneAPI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/TuneAPI;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		927CF9C02F884B790047A6B1 /* TuneAPI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TuneAPI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 92CEED972F883F7000C74A6A /* Project object */;
 }
