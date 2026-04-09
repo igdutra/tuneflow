@@ -7,6 +7,7 @@ Gather context and structure planning for significant work. **Run this command w
 - **Always use AskUserQuestion tool** when asking the user anything
 - **Offer suggestions** — Present options the user can confirm, adjust, or correct
 - **Keep it lightweight** — This is shaping, not exhaustive documentation
+- **Commit after each task** — Once a task is successfully completed, commit. One commit per task. Single line: task title + key files touched, e.g. `Set up Introduction module infrastructure: MODULE.md, index.yml and CLAUDE.md update`.
 
 ## Prerequisites
 
@@ -137,7 +138,7 @@ Here's the plan structure. Task 1 saves all our shaping work before implementati
 
 Create `agent-os/specs/{folder-name}/` with:
 
-- **plan.md** — This full plan
+- **plan.md** — This full plan (including BDD requirements and acceptance criteria per task)
 - **shape.md** — Shaping notes (scope, decisions, context from our conversation)
 - **standards.md** — Relevant standards that apply to this work
 - **references.md** — Pointers to reference implementations studied
@@ -153,27 +154,153 @@ Create `agent-os/specs/{folder-name}/` with:
 
 ---
 
-Does this plan structure look right? I'll fill in the implementation tasks next.
+Does this plan structure look right? I'll define BDD requirements and acceptance criteria for each task next.
 ```
 
-### Step 8: Complete the Plan
+### Step 8: Define BDD Requirements & Acceptance Criteria
 
-After Task 1 is confirmed, continue building out the remaining implementation tasks based on:
-- The feature scope from Step 1
-- Patterns from reference implementations (Step 3)
-- Constraints from standards (Step 5)
+**This step is mandatory. Every implementation task (Task 2 onward) MUST have BDD requirements and acceptance criteria before the plan is considered complete.**
+
+For each implementation task, draft the BDD requirements and acceptance criteria directly in the plan. Do not stop to ask the user for confirmation task-by-task. The user will review and edit the finalized plan afterward if needed.
+
+If a task cannot be specified confidently because the behavior, constraint, or expected outcome is unclear, do not interrupt the flow to ask immediately. Instead, mark the relevant BDD requirement or acceptance criterion with `[NEEDS CLARIFICATION]` so the user can review those exact points in the finalized plan.
+
+#### 8a. Write BDD Requirements
+
+Use **Given / When / Then** format. Focus on the core behaviors that define the user or business outcome this task must deliver.
+
+```gherkin
+### Requirement: [Behavior Name]
+
+Given [precondition or initial state]
+When [action the user or system takes]
+Then [expected observable outcome]
+```
+
+**Rules for BDD requirements:**
+- Start with the **primary user outcome** this task must deliver
+- Add **key boundary conditions** only where they materially affect behavior, scope, or UX
+- Add **failure handling** only where it materially affects trust, correctness, or delivery risk
+- Use domain language and observable outcomes, not implementation details ("the user sees a loading indicator" not "isLoading state is set to true")
+- Keep each requirement focused on one behavior — don't combine unrelated behaviors
+- Do not try to model every edge case in BDD; capture the scenarios that shape the solution
+- If an important behavior is ambiguous, mark that requirement with `[NEEDS CLARIFICATION]` instead of guessing
+
+#### 8b. Write Acceptance Criteria
+
+A checklist of specific, testable conditions that must ALL be true for the task to be considered complete.
+
+```markdown
+### Acceptance Criteria
+
+- [ ] [Specific, observable, testable criterion]
+- [ ] [Another criterion]
+- [ ] [Boundary condition, if material]
+- [ ] [Failure handling, if material]
+```
+
+**Rules for acceptance criteria:**
+- Write only the criteria needed to make the task unambiguous and testable
+- Most tasks will need **3-7 criteria**; use fewer for narrowly scoped tasks and more for high-risk or user-facing flows
+- Every criterion must describe an observable outcome for a user, operator, or dependent system
+- Include boundary conditions and failure handling when they materially affect behavior, trust, or delivery risk
+- Each criterion must be independently verifiable
+- Criteria should map naturally to test cases (unit, integration, or UI)
+- Do NOT include implementation details — describe WHAT must be true, not HOW it is built
+- Avoid padding the list with obvious or low-value checks just to reach a count
+- If a criterion would not change design, implementation, or testing decisions, leave it out
+- If a criterion depends on unresolved product or UX decisions, mark it with `[NEEDS CLARIFICATION]`
+
+#### 8c. Complete each task definition before moving on
+
+For each task, finish the full BDD + AC definition before starting the next one.
+
+**IMPORTANT:** Do NOT ask the user for confirmation after each task. Do NOT batch unfinished placeholders across all tasks. Each task should be fully written with:
+- A short task description
+- Complete BDD requirements covering the primary outcome plus any material boundary conditions or failure handling
+- A complete acceptance criteria checklist
+
+The review loop happens only after the entire plan is assembled.
+
+Use `[NEEDS CLARIFICATION]` inline anywhere the plan cannot be completed confidently without product input.
+
+#### 8d. Example — Full task with BDD and AC
+
+```markdown
+## Task 3: Implement Songs Screen Search
+
+Build the search bar and paginated results list on the Home screen.
+
+### Requirement: Search by text input
+
+Given the user is on the Songs Screen
+When they type a search term and submit
+Then a paginated list of matching songs is displayed
+
+### Requirement: Paginated loading
+
+Given search results are displayed
+When the user scrolls to the bottom of the current results
+Then the next page of results is fetched and appended
+
+### Requirement: Empty search results
+
+Given the user is on the Songs Screen
+When they search for a term with no matching results
+Then an empty state message is displayed
+
+### Requirement: Search network failure
+
+Given the user is on the Songs Screen
+When they search and the network request fails
+Then an error state is displayed with a retry option
+
+### Requirement: Search result ranking [NEEDS CLARIFICATION]
+
+Given the user submits a search
+When matching songs are returned
+Then results are ordered according to the agreed ranking logic [NEEDS CLARIFICATION: relevance, popularity, or exact match first]
+
+### Acceptance Criteria
+
+- [ ] A submitted search shows results that match the entered term
+- [ ] Results display song name, artist, and album artwork
+- [ ] Pagination loads the next batch when scrolling near the bottom
+- [ ] Empty state is shown when API returns zero results
+- [ ] Error state is shown on network failure with a retry action
+- [ ] Loading indicator is visible during the first search request
+- [ ] If the user submits a new search before the previous one completes, the screen updates to the latest submitted search results
+- [ ] Long song and artist names remain readable without breaking the layout
+- [ ] [NEEDS CLARIFICATION] Search results are ordered according to the agreed ranking logic
+```
+
+### Step 9: Complete the Plan
+
+After all tasks have defined BDD requirements and acceptance criteria, assemble the full plan.
+
+The plan should include:
+- All tasks with their descriptions
+- All BDD requirements per task
+- All acceptance criteria per task
+- Notes from reference implementations (Step 3)
+- Notes from standards (Step 5)
 
 Each task should be specific and actionable.
 
-### Step 9: Ready for Execution
+### Step 10: Ready for Execution
 
 When the full plan is ready:
 
 ```
-Plan complete. When you approve and execute:
+Plan complete with BDD requirements and acceptance criteria for all tasks.
+
+When you approve and execute:
 
 1. Task 1 will save all spec documentation first
-2. Then implementation tasks will proceed
+2. Then all implementation tasks will proceed, following their acceptance criteria
+3. After the production code for those acceptance criteria is ready, test the behavior defined by the same plan
+4. Testing must cover the primary case and the relevant error cases
+5. Each task's acceptance criteria define "done"
 
 Ready to start? (approve / adjust)
 ```
@@ -184,11 +311,56 @@ The spec folder will contain:
 
 ```
 agent-os/specs/{YYYY-MM-DD-HHMM-feature-slug}/
-├── plan.md           # The full plan
+├── plan.md           # Full plan with BDD requirements and AC per task
 ├── shape.md          # Shaping decisions and context
 ├── standards.md      # Which standards apply and key points
 ├── references.md     # Pointers to similar code
 └── visuals/          # Mockups, screenshots (if any)
+```
+
+## plan.md Content
+
+The plan.md MUST follow this structure:
+
+```markdown
+# {Feature Name} — Plan
+
+## Overview
+
+[Brief description of what this plan covers]
+
+## Task 1: Save Spec Documentation
+
+[Standard task 1 content]
+
+## Task 2: {Task Name}
+
+{Description}
+
+### Requirement: {Behavior Name}
+
+Given {precondition}
+When {action}
+Then {outcome}
+
+### Requirement: {Behavior Name}
+
+Given {precondition}
+When {action}
+Then {outcome}
+
+### Acceptance Criteria
+
+- [ ] {Criterion}
+- [ ] {Criterion}
+- [ ] {Boundary condition, if material}
+- [ ] {Failure handling, if material}
+
+## Task 3: {Task Name}
+
+[Same structure as Task 2]
+
+...
 ```
 
 ## shape.md Content
@@ -265,3 +437,5 @@ The following standards apply to this work.
 - **Visuals are optional** — Not every feature needs mockups.
 - **Standards guide, not dictate** — They inform the plan but aren't always mandatory.
 - **Specs are discoverable** — Months later, someone can find this spec and understand what was built and why.
+- **BDD covers behavior, not implementation** — Write requirements in user/domain language. How to implement and test is governed by standards.
+- **Tests stay in the same plan, but come after implementation** — First implement all planned production code to satisfy the acceptance criteria. Then test the defined behavior, covering the primary case and the relevant error cases.
