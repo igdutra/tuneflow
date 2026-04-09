@@ -9,6 +9,8 @@ Create a clear, minimal GitHub pull request for the current branch targeting `ma
 
 ## Workflow
 
+Do not perform extra validation beyond the listed workflow. In particular, do not check for an existing PR or verify upstream/push state unless the user explicitly asks.
+
 1. Detect the current branch with `git branch --show-current`.
 2. Gather context before writing the PR:
    - `git status --short`
