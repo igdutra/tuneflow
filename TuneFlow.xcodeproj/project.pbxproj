@@ -14,19 +14,11 @@
 			remoteGlobalIDString = 92CEED9E2F883F7000C74A6A;
 			remoteInfo = TuneFlow;
 		};
-		92CEEDB92F883F7200C74A6A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 92CEED972F883F7000C74A6A /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 92CEED9E2F883F7000C74A6A;
-			remoteInfo = TuneFlow;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		92CEED9F2F883F7000C74A6A /* TuneFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TuneFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		92CEEDAE2F883F7200C74A6A /* TuneFlowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TuneFlowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		92CEEDB82F883F7200C74A6A /* TuneFlowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TuneFlowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -38,11 +30,6 @@
 		92CEEDB12F883F7200C74A6A /* TuneFlowTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TuneFlowTests;
-			sourceTree = "<group>";
-		};
-		92CEEDBB2F883F7200C74A6A /* TuneFlowUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TuneFlowUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -62,13 +49,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		92CEEDB52F883F7200C74A6A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -77,7 +57,6 @@
 			children = (
 				92CEEDA12F883F7000C74A6A /* TuneFlow */,
 				92CEEDB12F883F7200C74A6A /* TuneFlowTests */,
-				92CEEDBB2F883F7200C74A6A /* TuneFlowUITests */,
 				92CEEDA02F883F7000C74A6A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,7 +66,6 @@
 			children = (
 				92CEED9F2F883F7000C74A6A /* TuneFlow.app */,
 				92CEEDAE2F883F7200C74A6A /* TuneFlowTests.xctest */,
-				92CEEDB82F883F7200C74A6A /* TuneFlowUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -140,29 +118,6 @@
 			productReference = 92CEEDAE2F883F7200C74A6A /* TuneFlowTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		92CEEDB72F883F7200C74A6A /* TuneFlowUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 92CEEDC82F883F7200C74A6A /* Build configuration list for PBXNativeTarget "TuneFlowUITests" */;
-			buildPhases = (
-				92CEEDB42F883F7200C74A6A /* Sources */,
-				92CEEDB52F883F7200C74A6A /* Frameworks */,
-				92CEEDB62F883F7200C74A6A /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				92CEEDBA2F883F7200C74A6A /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				92CEEDBB2F883F7200C74A6A /* TuneFlowUITests */,
-			);
-			name = TuneFlowUITests;
-			packageProductDependencies = (
-			);
-			productName = TuneFlowUITests;
-			productReference = 92CEEDB82F883F7200C74A6A /* TuneFlowUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -177,10 +132,6 @@
 						CreatedOnToolsVersion = 26.1;
 					};
 					92CEEDAD2F883F7200C74A6A = {
-						CreatedOnToolsVersion = 26.1;
-						TestTargetID = 92CEED9E2F883F7000C74A6A;
-					};
-					92CEEDB72F883F7200C74A6A = {
 						CreatedOnToolsVersion = 26.1;
 						TestTargetID = 92CEED9E2F883F7000C74A6A;
 					};
@@ -202,7 +153,6 @@
 			targets = (
 				92CEED9E2F883F7000C74A6A /* TuneFlow */,
 				92CEEDAD2F883F7200C74A6A /* TuneFlowTests */,
-				92CEEDB72F883F7200C74A6A /* TuneFlowUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -216,13 +166,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		92CEEDAC2F883F7200C74A6A /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		92CEEDB62F883F7200C74A6A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -246,13 +189,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		92CEEDB42F883F7200C74A6A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -260,11 +196,6 @@
 			isa = PBXTargetDependency;
 			target = 92CEED9E2F883F7000C74A6A /* TuneFlow */;
 			targetProxy = 92CEEDAF2F883F7200C74A6A /* PBXContainerItemProxy */;
-		};
-		92CEEDBA2F883F7200C74A6A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 92CEED9E2F883F7000C74A6A /* TuneFlow */;
-			targetProxy = 92CEEDB92F883F7200C74A6A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -498,46 +429,6 @@
 			};
 			name = Release;
 		};
-		92CEEDC92F883F7200C74A6A /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8C3NFSJWVT;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "ivo-products.TuneFlowUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = TuneFlow;
-			};
-			name = Debug;
-		};
-		92CEEDCA2F883F7200C74A6A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8C3NFSJWVT;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "ivo-products.TuneFlowUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = TuneFlow;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -564,15 +455,6 @@
 			buildConfigurations = (
 				92CEEDC62F883F7200C74A6A /* Debug */,
 				92CEEDC72F883F7200C74A6A /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		92CEEDC82F883F7200C74A6A /* Build configuration list for PBXNativeTarget "TuneFlowUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				92CEEDC92F883F7200C74A6A /* Debug */,
-				92CEEDCA2F883F7200C74A6A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
