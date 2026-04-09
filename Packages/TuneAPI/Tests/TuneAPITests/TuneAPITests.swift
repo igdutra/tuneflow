@@ -1,6 +1,13 @@
 import Testing
 @testable import TuneAPI
 
+struct TuneRepositoryImpl: TuneRepository {
+    func fetchTunes() async throws -> [String] {
+        [""]
+    }
+}
+
 @Test func example() async throws {
-    // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    let tune1 = TuneRepositoryImpl()
+    try await #expect(tune1.fetchTunes().first == "")
 }
