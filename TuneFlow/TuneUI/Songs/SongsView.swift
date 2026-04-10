@@ -3,6 +3,8 @@ import TuneDomain
 
 struct SongsView: View {
     @State private var viewModel: SongsViewModel
+    @State private var isSearchPresented = false
+    @State private var showsCollapsedSearchButton = false
 
     init(viewModel: SongsViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -28,6 +30,13 @@ struct SongsView: View {
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
             }
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y > 30
+            } action: { _, isCollapsed in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showsCollapsedSearchButton = isCollapsed && !isSearchPresented
+                }
+            }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Color.black)
@@ -38,13 +47,32 @@ struct SongsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.black, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            // TODO: JIRA-xxxx Verify toolbar + .searchable behavior. ACs are met but experience and code might not me optimal. Needs verification.
             // Note: if needed, search can be transformed to a custom component
             // to match the design more closely. Going with native for the moment.
             .searchable(
                 text: $viewModel.searchText,
-                placement: .navigationBarDrawer(displayMode: .always),
+                isPresented: $isSearchPresented,
+                placement: .navigationBarDrawer(displayMode: .automatic),
                 prompt: "Search"
             )
+            .searchToolbarBehavior(.automatic)
+            .onChange(of: isSearchPresented) { _, isPresented in
+                if isPresented {
+                    showsCollapsedSearchButton = false
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if showsCollapsedSearchButton {
+                        Button {
+                            isSearchPresented = true
+                        } label: {
+                            Label("Search", systemImage: "magnifyingglass")
+                        }
+                    }
+                }
+            }
             .onSubmit(of: .search) {
                 Task { await viewModel.search() }
             }
