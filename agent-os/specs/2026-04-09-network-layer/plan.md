@@ -61,7 +61,7 @@ Then the feature fails safely instead of receiving unusable song data
 ### TuneDomain Package
 - [ ] `Packages/TuneDomain/` is a valid Swift Package targeting iOS 26+ and macOS 26+, has no third-party dependencies, and compiles with `swift build`
 - [ ] `Song` is a public `struct`, `Sendable`, and `Equatable` with these fields: `id: Int`, `trackName: String`, `artistName: String`, `albumName: String`, `artworkURL: URL`, `previewURL: URL?`, `trackNumber: Int?`
-- [ ] `SongRepository` is a public, `Sendable` protocol with `search(query:limit:offset:)` and `fetchAlbum(collectionId:)` methods, and `TuneDomain` exposes only shared protocols and value types with no concrete networking or caching implementations
+- [ ] `SongRepository` is a public, `Sendable` protocol with `search(query:limit:offset:)`, and `TuneDomain` exposes only shared protocols and value types with no concrete networking or caching implementations
 
 ### HTTP Client
 - [ ] `HTTPClient` declares `get(from: URL) async throws -> (Data, HTTPURLResponse)` and is `Sendable`
@@ -72,12 +72,14 @@ Then the feature fails safely instead of receiving unusable song data
 ### RemoteSongRepository & Mapping
 - [ ] `RemoteSongRepository` conforms to `SongRepository` and is initialized with an `HTTPClient` and base `URL`
 - [ ] `search` builds the iTunes Search API request with `term`, `media=music`, `limit`, and `offset` query parameters
-- [ ] `fetchAlbum` builds the appropriate iTunes request for album lookup [NEEDS CLARIFICATION: exact endpoint TBD in Track 7]
 - [ ] Remote response DTOs remain internal to `TuneAPI` and are never exposed from the package's public API
 - [ ] `RemoteSongMapper` validates a 200 HTTP status before decoding and maps the iTunes response envelope into `[Song]`
 - [ ] The mapper correctly populates all `Song` fields from `trackId`, `trackName`, `artistName`, `collectionName`, `artworkUrl100`, `previewUrl`, and `trackNumber`
 - [ ] Empty search results return `[]` instead of an error
 - [ ] `RemoteSongRepositoryError` is `Equatable`, contains exactly `connectivity` and `invalidData`, and is used for non-200 HTTP responses and malformed JSON failures
+
+### Out of Scope / TODO
+- [ ] Add album-fetching support in a future spec once the product behavior, endpoint choice, and repository contract are defined
 
 ### Testing
 - [ ] `URLProtocolStub` is adapted for Swift Testing and verifies GET method usage, exact URL delivery, success tuple delivery, and connectivity failure behavior for `URLSessionHTTPClient`; if shared global state is required, the affected tests use `.serialized` with the reason documented
