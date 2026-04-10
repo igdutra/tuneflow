@@ -1,32 +1,21 @@
-//
-//  TuneFlowApp.swift
-//  TuneFlow
-//
-//  Created by Ivo on 09/04/26.
-//
-
 import SwiftUI
-import SwiftData
+import TuneAPI
+import TuneDomain
 
 @main
 struct TuneFlowApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+    private let httpClient = URLSessionHTTPClient()
+    private let songRepository: any SongRepository
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    init() {
+        let baseURL = URL(string: "https://itunes.apple.com/search")!
+        songRepository = RemoteSongRepository(client: httpClient, baseURL: baseURL)
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SongsComposer.compose(songRepository: songRepository)
+                .preferredColorScheme(.dark)
         }
-        .modelContainer(sharedModelContainer)
     }
 }

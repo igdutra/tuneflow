@@ -1,5 +1,4 @@
 import SwiftUI
-import TuneDomain
 
 struct SongsView: View {
     @State private var viewModel: SongsViewModel
