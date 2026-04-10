@@ -9,7 +9,7 @@ import Testing
 @testable import TuneFlow
 import TuneAPI
 
-struct TuneAPIStub: TuneRepository {
+struct TuneAPIStub {
     func fetchTunes() async throws -> [String] {
         ["This is a stub"]
     }

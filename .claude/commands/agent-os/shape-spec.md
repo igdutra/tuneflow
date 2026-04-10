@@ -7,7 +7,6 @@ Gather context and structure planning for significant work. **Run this command w
 - **Always use AskUserQuestion tool** when asking the user anything
 - **Offer suggestions** — Present options the user can confirm, adjust, or correct
 - **Keep it lightweight** — This is shaping, not exhaustive documentation
-- **Commit after each task** — Once a task is successfully completed, commit. One commit per task. Single line: task title + key files touched, e.g. `Set up Introduction module infrastructure: MODULE.md, index.yml and CLAUDE.md update`.
 
 ## Prerequisites
 
@@ -305,6 +304,7 @@ The plan should include:
 - All tasks with story/AC references (Step 9)
 - Notes from reference implementations (Step 3)
 - Notes from standards (Step 5)
+- Add the important note at the top of the plan: "Once a task is successfully completed, commit. One commit per task. Single line: task title + key files touched, e.g. `Set up Introduction module infrastructure: MODULE.md, index.yml and CLAUDE.md update`."
 
 Present the complete plan to the user for review.
 
