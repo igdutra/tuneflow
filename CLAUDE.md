@@ -12,3 +12,7 @@ SwiftUI music discovery app for searching, browsing, and previewing tracks via t
   - `Tests/TuneAPIIntegrationTests/` — integration tests against the real API
 - `Packages/TuneDomain/` — pure domain models and repository protocols (`Song`, `SongRepository`)
 - `agent-os/` — AgentOS specs and standards
+
+## Rules
+
+- NEVER edit TuneFlow.xcodeproj/project.pbxproj yourself. When adding new files, simply say at the end which folder and files where added and I'll add them myself.
