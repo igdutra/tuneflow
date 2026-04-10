@@ -2,12 +2,24 @@ import Testing
 import Foundation
 @testable import TuneAPI
 
-// URLProtocolStub uses global URLProtocol registration — tests must run serially.
+/// Test notes:
+/// URLProtocolStub lets these infrastructure tests exercise the real URLSession-based client
+/// without performing actual HTTP requests.
+/// URLProtocolStub uses global URLProtocol registration — tests must run serially.
+/// Why final class vs struct? With class + Swift Test we can get the init + deinit methods, reassuring clean state execution since we are dealing with possilbe side-effects (URLProtocolStub is global scope) between tests.
 @Suite(.serialized)
-struct URLSessionHTTPClientTests {
+final class URLSessionHTTPClientTests {
+    init() {
+        URLProtocolStub.startInterceptingRequests()
+    }
+
+    deinit {
+        URLProtocolStub.stopInterceptingRequests()
+    }
+
     @Test func get_performsGETRequestWithURL() async throws {
         let url = anyURL()
-        let (sut, _) = makeSUT()
+        let sut = makeSUT()
         let expectedResponse = anyHTTPURLResponse(url: url, statusCode: 200)
         URLProtocolStub.stub(data: Data(), response: expectedResponse, error: nil)
 
@@ -22,7 +34,7 @@ struct URLSessionHTTPClientTests {
 
     @Test func get_onSuccess_deliversDataAndResponse() async throws {
         let url = anyURL()
-        let (sut, _) = makeSUT()
+        let sut = makeSUT()
         let expectedData = Data("any data".utf8)
         let expectedResponse = anyHTTPURLResponse(url: url, statusCode: 200)
         URLProtocolStub.stub(data: expectedData, response: expectedResponse, error: nil)
@@ -35,11 +47,22 @@ struct URLSessionHTTPClientTests {
     }
 
     @Test func get_onConnectivityError_throwsConnectivityError() async throws {
-        let (sut, _) = makeSUT()
+        let sut = makeSUT()
         URLProtocolStub.stub(data: nil, response: nil, error: anyNSError())
 
         await #expect(throws: RemoteSongRepositoryError.connectivity) {
             _ = try await sut.get(from: anyURL())
+        }
+    }
+
+    @Test func get_onNonHTTPResponse_throwsConnectivityError() async throws {
+        let url = anyURL()
+        let sut = makeSUT()
+        let response = URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
+        URLProtocolStub.stub(data: Data(), response: response, error: nil)
+
+        await #expect(throws: RemoteSongRepositoryError.connectivity) {
+            _ = try await sut.get(from: url)
         }
     }
 }
@@ -47,18 +70,13 @@ struct URLSessionHTTPClientTests {
 // MARK: - Helpers
 
 private extension URLSessionHTTPClientTests {
-    typealias SUTBundle = (sut: URLSessionHTTPClient, stub: URLProtocolStub.Type)
-
-    func makeSUT(source: SourceLocation = #_sourceLocation) -> SUTBundle {
-        URLProtocolStub.startInterceptingRequests()
+    func makeSUT(source: SourceLocation = #_sourceLocation) -> URLSessionHTTPClient {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [URLProtocolStub.self]
         let session = URLSession(configuration: config)
         let sut = URLSessionHTTPClient(session: session)
         _ = source
-        // Teardown: stopInterceptingRequests called per-test via defer in each test would be ideal,
-        // but since the suite is .serialized we stop in each test helper.
-        return (sut, URLProtocolStub.self)
+        return sut
     }
 
     func anyURL() -> URL {

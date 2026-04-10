@@ -16,6 +16,7 @@ public final class URLSessionHTTPClient: HTTPClient {
             }
             return (data, httpResponse)
         } catch is RemoteSongRepositoryError {
+            // TODO: the infrastructure should return plain ERROR and it is repository responsability to map the error accordinly. Fine for now - refactor later.
             throw RemoteSongRepositoryError.connectivity
         } catch {
             // TODO: can later define other error states based on specific errors
