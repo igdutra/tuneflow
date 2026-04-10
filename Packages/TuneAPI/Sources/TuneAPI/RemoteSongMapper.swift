@@ -9,9 +9,9 @@ enum RemoteSongMapper {
             throw RemoteSongRepositoryError.invalidData
         }
 
-        let envelope: RemoteSearchEnvelope
+        let envelope: RemoteSearchPage
         do {
-            envelope = try JSONDecoder().decode(RemoteSearchEnvelope.self, from: data)
+            envelope = try JSONDecoder().decode(RemoteSearchPage.self, from: data)
         } catch {
             throw RemoteSongRepositoryError.invalidData
         }

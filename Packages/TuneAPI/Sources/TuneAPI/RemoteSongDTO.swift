@@ -10,7 +10,7 @@ struct RemoteSongDTO: Decodable {
     let trackNumber: Int?
 }
 
-struct RemoteSearchEnvelope: Decodable {
+struct RemoteSearchPage: Decodable {
     let resultCount: Int
     let results: [RemoteSongDTO]
 }

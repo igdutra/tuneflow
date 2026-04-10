@@ -18,6 +18,7 @@ public final class URLSessionHTTPClient: HTTPClient {
         } catch is RemoteSongRepositoryError {
             throw RemoteSongRepositoryError.connectivity
         } catch {
+            // TODO: can later define other error states based on specific errors
             throw RemoteSongRepositoryError.connectivity
         }
     }
