@@ -2,281 +2,126 @@
 
 ## Overview
 
-Build the foundation networking infrastructure for TuneFlow: a shared domain package (`TuneDomain`) holding the `Song` model and `SongRepository` protocol boundary, and the `TuneAPI` package implementing `RemoteSongRepository` with `HTTPClient` abstraction, iTunes Search API integration, pagination, typed errors, and full test coverage.
+Build the foundation networking infrastructure for TuneFlow as two Swift Packages: `TuneDomain`, which defines the shared song model and repository boundary, and `TuneAPI`, which implements remote song search against the iTunes Search API with pagination, typed errors, and test coverage.
 
 **Standards applied:**
 
 @agent-os/standards/swift/module-composition.md
 @agent-os/standards/swift/testing.md
 
-**iTunes Search API:**
-- Base URL: `https://itunes.apple.com/search`
-- Query parameters: `term`, `media=music`, `limit`, `offset`
-- Response: `{ "resultCount": Int, "results": [RemoteSongDTO] }`
+**Reference notes:**
+
+- The Essential Developer modular architecture reference sets the package boundary: `TuneDomain` is the shared inward dependency, while `TuneAPI` keeps transport, DTOs, and mappers internal.
+- The provided `URLProtocolStub` reference is the basis for transport-layer tests and must be adapted from XCTest patterns to Swift Testing.
+- The iTunes Search API integration uses `https://itunes.apple.com/search` with `term`, `media=music`, `limit`, and `offset` query parameters and a `resultCount`/`results` response envelope.
+
+**Standards notes:**
+
+- `swift/module-composition` requires stable inward-facing boundaries, internal DTOs/mappers, and composition at the app edge.
+- `swift/testing` requires struct-based test suites, `makeSUT()` helpers, `#expect`/`#require`, clear spy vs stub usage, and explicit handling of any shared global state.
 
 ---
 
-## Task 1: Save Spec Documentation
+## Stories
+
+### S1: Search songs by text
+
+Given a TuneFlow feature requests songs for a search term
+When the remote search succeeds
+Then it receives a list of songs with the details needed to present results
+
+### S2: Load additional search results
+
+Given a TuneFlow feature has already loaded search results
+When it requests the next page for the same search
+Then it receives the next batch of songs for that query
+
+### S3: Show an empty result state
+
+Given a TuneFlow feature searches for songs
+When no matching songs are found
+Then it receives an empty result set instead of a failure
+
+### S4: Fail gracefully when offline
+
+Given a TuneFlow feature requests songs from the remote service
+When the device cannot reach the service
+Then the feature receives a recoverable failure it can surface appropriately
+
+### S5: Fail gracefully on unusable server responses
+
+Given a TuneFlow feature requests songs from the remote service
+When the service returns an unusable response
+Then the feature fails safely instead of receiving unusable song data
+
+---
+
+## Acceptance Criteria
+
+### TuneDomain Package
+- [ ] `Packages/TuneDomain/` is a valid Swift Package targeting iOS 26+ and macOS 26+, has no third-party dependencies, and compiles with `swift build`
+- [ ] `Song` is a public `struct`, `Sendable`, and `Equatable` with these fields: `id: Int`, `trackName: String`, `artistName: String`, `albumName: String`, `artworkURL: URL`, `previewURL: URL?`, `trackNumber: Int?`
+- [ ] `SongRepository` is a public, `Sendable` protocol with `search(query:limit:offset:)` and `fetchAlbum(collectionId:)` methods, and `TuneDomain` exposes only shared protocols and value types with no concrete networking or caching implementations
+
+### HTTP Client
+- [ ] `HTTPClient` declares `get(from: URL) async throws -> (Data, HTTPURLResponse)` and is `Sendable`
+- [ ] `URLSessionHTTPClient` conforms to `HTTPClient`, performs HTTP GET requests with `URLSession.data(for:)`, and returns the received `(Data, HTTPURLResponse)` tuple unchanged on success
+- [ ] `URLSessionHTTPClient` maps `URLSession` request failures to `RemoteSongRepositoryError.connectivity`
+- [ ] `TuneAPI` declares its dependency on `TuneDomain` in `Package.swift` and imports only `Foundation` and `TuneDomain` for the networking layer
+
+### RemoteSongRepository & Mapping
+- [ ] `RemoteSongRepository` conforms to `SongRepository` and is initialized with an `HTTPClient` and base `URL`
+- [ ] `search` builds the iTunes Search API request with `term`, `media=music`, `limit`, and `offset` query parameters
+- [ ] `fetchAlbum` builds the appropriate iTunes request for album lookup [NEEDS CLARIFICATION: exact endpoint TBD in Track 7]
+- [ ] Remote response DTOs remain internal to `TuneAPI` and are never exposed from the package's public API
+- [ ] `RemoteSongMapper` validates a 200 HTTP status before decoding and maps the iTunes response envelope into `[Song]`
+- [ ] The mapper correctly populates all `Song` fields from `trackId`, `trackName`, `artistName`, `collectionName`, `artworkUrl100`, `previewUrl`, and `trackNumber`
+- [ ] Empty search results return `[]` instead of an error
+- [ ] `RemoteSongRepositoryError` is `Equatable`, contains exactly `connectivity` and `invalidData`, and is used for non-200 HTTP responses and malformed JSON failures
+
+### Testing
+- [ ] `URLProtocolStub` is adapted for Swift Testing and verifies GET method usage, exact URL delivery, success tuple delivery, and connectivity failure behavior for `URLSessionHTTPClient`; if shared global state is required, the affected tests use `.serialized` with the reason documented
+- [ ] `HTTPClientSpy` records requested URLs and can stub success and failure results for repository tests
+- [ ] Repository and mapper tests verify no request is made on initialization, correct query URL construction, correct pagination offset handling, valid song mapping, optional field handling, connectivity failure propagation, invalid data failures for non-200 statuses (`199`, `201`, `300`, `400`, `500`), malformed JSON failure, and empty-result success
+- [ ] All tests follow the Swift Testing standard: struct suites, `makeSUT()` helpers, `#expect`/`#require`, concrete fixtures, and safe parallel behavior
+
+---
+
+## Tasks
+
+### Task 1: Save Spec Documentation
 
 Create `agent-os/specs/2026-04-09-network-layer/` with:
 
 - **plan.md** — This full plan
-- **shape.md** — Shaping notes (scope, decisions, context)
-- **standards.md** — References to applied standards
-- **references.md** — URLProtocolStub reference, Essential Developer diagram
+- **shape.md** — Shaping notes
+- **standards.md** — Relevant standards
+- **references.md** — Pointers to reference implementations
+- **visuals/** — Any provided visuals
 
----
+### Task 2: Build the Shared Domain Package
 
-## Task 2: TuneDomain Swift Package
+Create `Packages/TuneDomain` as the stable shared boundary for song data and repository behavior so other modules can depend on a single contract.
 
-Create `Packages/TuneDomain` — the shared domain module. **This package must be as lean as possible:** only protocols and value types. No implementations, no Foundation-heavy imports beyond what value types need.
+**Stories:** S1, S2, S3, S4, S5
+**ACs:** TuneDomain Package
 
-Both `TuneAPI` and `TuneCache` (future) will depend on this package. Changes here cascade to all dependents — keep it stable.
+### Task 3: Build the HTTP Transport Layer
 
-Contents:
-- `Song` domain model (struct, Sendable, Equatable)
-- `SongRepository` protocol (Sendable)
+Implement `HTTPClient` and `URLSessionHTTPClient` inside `Packages/TuneAPI`, wire the package dependency on `TuneDomain`, and cover the transport behavior with Swift Testing.
 
-### Requirement: Song domain model
+**Stories:** S1, S2, S4, S5
+**ACs:** HTTP Client; Testing (`URLProtocolStub` adaptation, serialization rule if needed)
 
-Given the app needs a shared representation of a song
-When any module imports TuneDomain
-Then it has access to `Song` with fields: `id: Int`, `trackName: String`, `artistName: String`, `albumName: String`, `artworkURL: URL`, `previewURL: URL?`, `trackNumber: Int?`
+### Task 4: Build Remote Song Search and Mapping
 
-### Requirement: SongRepository protocol boundary
+Implement `RemoteSongRepository`, internal DTOs, mapper logic, typed errors, pagination behavior, and the repository/mapper test coverage for successful, empty, and failure cases.
 
-Given TuneAPI and TuneCache both need to conform to a shared contract
-When a module imports TuneDomain
-Then it can conform to `SongRepository` with `search(query: String, limit: Int, offset: Int) async throws -> [Song]` and `fetchAlbum(collectionId: Int) async throws -> [Song]`
+**Stories:** S1, S2, S3, S4, S5
+**ACs:** RemoteSongRepository & Mapping; Testing (`HTTPClientSpy`, repository coverage, mapper coverage, Swift Testing conventions)
 
-### Acceptance Criteria
+### Task 5: Validate All ACs
 
-- [ ] `Packages/TuneDomain/` is a valid Swift Package (iOS 26+, macOS 26+)
-- [ ] `Song` is a public struct, Sendable, Equatable, with all 7 fields
-- [ ] `SongRepository` is a public protocol, Sendable, with `search` and `fetchAlbum` methods
-- [ ] `search` accepts `query`, `limit`, and `offset` parameters (pagination support)
-- [ ] No implementations — only protocols and value types
-- [ ] No third-party dependencies
-- [ ] Package compiles with `swift build`
+Walk through every acceptance criterion and verify it has been implemented and tested. Flag any gaps.
 
----
-
-## Task 3: HTTPClient Protocol & URLSessionHTTPClient
-
-Build the HTTP client abstraction and its URLSession implementation inside `Packages/TuneAPI`. TuneAPI gains a dependency on TuneDomain.
-
-- `HTTPClient` protocol: `get(from: URL) async throws -> (Data, HTTPURLResponse)`
-- `URLSessionHTTPClient` conforms using `URLSession.data(for:)`
-- Error: maps URLSession failures to connectivity error
-
-### Requirement: GET request execution
-
-Given a valid URL
-When the HTTPClient performs a GET request
-Then the request is sent as an HTTP GET to the provided URL
-
-### Requirement: Successful response delivery
-
-Given the server returns data and a valid HTTP response
-When the HTTPClient completes the request
-Then it returns the received `(Data, HTTPURLResponse)` tuple
-
-### Requirement: Connectivity failure
-
-Given the network is unavailable or the request fails
-When the HTTPClient attempts a request
-Then it throws a connectivity error
-
-### Acceptance Criteria
-
-- [ ] `HTTPClient` protocol declares `get(from: URL) async throws -> (Data, HTTPURLResponse)`
-- [ ] `HTTPClient` is `Sendable`
-- [ ] `URLSessionHTTPClient` conforms to `HTTPClient` using `URLSession.data(for:)`
-- [ ] `URLSessionHTTPClient` maps URLSession errors to `RemoteSongRepositoryError.connectivity`
-- [ ] TuneAPI's `Package.swift` declares dependency on TuneDomain
-- [ ] No imports beyond Foundation and TuneDomain
-
----
-
-## Task 4: URLSessionHTTPClient Tests (URLProtocolStub)
-
-Port the URLProtocolStub reference (from XCTest) to Swift Testing.
-
-### Requirement: Performs GET request with correct URL
-
-Given a stubbed URL
-When `URLSessionHTTPClient.get(from:)` is called
-Then a GET request is sent to that exact URL
-
-### Requirement: Fails on request error
-
-Given the stub is configured with an NSError
-When the client performs a request
-Then it throws a connectivity error
-
-### Requirement: Delivers data on successful response
-
-Given the stub returns data and a 200 HTTP response
-When the client performs a request
-Then it returns the data and response tuple
-
-### Acceptance Criteria
-
-- [ ] `URLProtocolStub` ported from XCTest reference, adapted for Swift Testing
-- [ ] Test verifies HTTP method is GET
-- [ ] Test verifies request URL matches the provided URL
-- [ ] Test verifies connectivity error on stub error
-- [ ] Test verifies `(Data, HTTPURLResponse)` returned on success
-- [ ] Struct suite, `makeSUT()` with SUTBundle, `#expect`/`#require`
-- [ ] Tests are parallel-safe — use `.serialized` trait if URLProtocol global state requires it, with documented reason
-
----
-
-## Task 5: RemoteSongRepository & RemoteSongMapper
-
-Build the iTunes Search API client inside TuneAPI.
-
-**RemoteSongDTO fields** (internal to TuneAPI, maps to `Song` from TuneDomain):
-
-| JSON key | DTO field | Song field | Type |
-|---|---|---|---|
-| `trackId` | `trackId` | `id` | `Int` |
-| `trackName` | `trackName` | `trackName` | `String` |
-| `artistName` | `artistName` | `artistName` | `String` |
-| `collectionName` | `collectionName` | `albumName` | `String` |
-| `artworkUrl100` | `artworkUrl100` | `artworkURL` | `URL` |
-| `previewUrl` | `previewUrl` | `previewURL` | `URL?` |
-| `trackNumber` | `trackNumber` | `trackNumber` | `Int?` |
-
-**Error enum:**
-
-```swift
-public enum RemoteSongRepositoryError: Error, Equatable {
-    case connectivity
-    case invalidData
-}
-```
-
-### Requirement: Search songs by query with pagination
-
-Given a search query, limit of 25, and offset of 0
-When the repository searches
-Then it sends a GET request to `https://itunes.apple.com/search?term=<query>&media=music&limit=25&offset=0`
-
-### Requirement: Paginated search with offset
-
-Given a search query, limit of 25, and offset of 50
-When the repository searches for the next page
-Then the request URL includes `offset=50`
-
-### Requirement: Map successful response to Song array
-
-Given the API returns 200 with valid JSON containing song results
-When the response is mapped via `RemoteSongMapper`
-Then it produces `[Song]` with all fields correctly mapped (including optional `previewURL` and `trackNumber`)
-
-### Requirement: Handle non-200 status codes
-
-Given the API returns a non-200 HTTP status
-When the response is processed
-Then `invalidData` is thrown
-
-### Requirement: Handle invalid JSON
-
-Given the API returns 200 with malformed JSON
-When the response is decoded
-Then `invalidData` is thrown
-
-### Requirement: Handle empty results
-
-Given the API returns 200 with `{"resultCount": 0, "results": []}`
-When the response is mapped
-Then an empty `[Song]` array is returned
-
-### Requirement: Connectivity failure passthrough
-
-Given the HTTPClient throws a connectivity error
-When the repository attempts a search
-Then it throws `connectivity`
-
-### Acceptance Criteria
-
-- [ ] `RemoteSongRepository` conforms to `SongRepository` from TuneDomain
-- [ ] Constructor takes `HTTPClient` and base `URL`
-- [ ] `search` builds URL with `term`, `media=music`, `limit`, `offset` query parameters
-- [ ] `fetchAlbum` builds URL with appropriate iTunes API call [NEEDS CLARIFICATION: exact endpoint TBD in Track 7]
-- [ ] `RemoteSongDTO` is `Decodable`, internal to TuneAPI — never public
-- [ ] `RemoteSongMapper` maps `(Data, HTTPURLResponse)` -> `[Song]`
-- [ ] Mapper validates 200 status before decoding
-- [ ] Mapper throws `invalidData` on non-200 or decode failure
-- [ ] Empty results returns `[]`, not an error
-- [ ] `RemoteSongRepositoryError` has `connectivity` and `invalidData` cases
-- [ ] All 7 Song fields mapped correctly, optionals handled
-
----
-
-## Task 6: RemoteSongRepository & Mapper Tests
-
-Full test coverage using `HTTPClientSpy`.
-
-### Requirement: No request on init
-
-Given a newly created RemoteSongRepository
-When no method has been called
-Then zero requests are sent to the HTTPClient
-
-### Requirement: Correct search URL with pagination
-
-Given a query "Beatles", limit 25, offset 0
-When the repository searches
-Then the spy receives a request to the correctly constructed iTunes URL with all query parameters
-
-### Requirement: Correct pagination on subsequent pages
-
-Given a query "Beatles", limit 25, offset 50
-When the repository searches for page 3
-Then the spy receives a URL with `offset=50`
-
-### Requirement: Delivers songs on valid response
-
-Given the spy returns 200 with valid song JSON
-When search completes
-Then it returns the mapped `[Song]` array matching the fixture data
-
-### Requirement: Connectivity error on client failure
-
-Given the spy throws an error
-When search is attempted
-Then `connectivity` is thrown
-
-### Requirement: InvalidData on non-200
-
-Given the spy returns a non-200 status
-When the response is processed
-Then `invalidData` is thrown
-
-### Requirement: InvalidData on bad JSON
-
-Given the spy returns 200 with invalid JSON
-When decoding is attempted
-Then `invalidData` is thrown
-
-### Requirement: Empty array on zero results
-
-Given the spy returns 200 with zero results JSON
-When mapping completes
-Then `[]` is returned
-
-### Acceptance Criteria
-
-- [ ] `HTTPClientSpy` records requested URLs and stubs results/errors
-- [ ] Test: no request on init
-- [ ] Test: correct URL with `term`, `media`, `limit`, `offset`
-- [ ] Test: pagination offset varies correctly
-- [ ] Test: `[Song]` mapping from valid JSON fixture
-- [ ] Test: connectivity error on spy failure
-- [ ] Test: invalidData on non-200 (parameterized: 199, 201, 300, 400, 500)
-- [ ] Test: invalidData on malformed JSON with 200
-- [ ] Test: empty array on zero results
-- [ ] Separate mapper tests: valid mapping, optional field handling, non-200 rejection, invalid JSON
-- [ ] All tests: struct suite, `makeSUT()`, spy pattern, `#expect`/`#require`, concrete fixtures
+**ACs:** All

@@ -123,184 +123,205 @@ Example: `2026-01-15-1430-user-comment-system/`
 
 **Note:** If `agent-os/specs/` doesn't exist, create it when saving the spec folder.
 
-### Step 7: Structure the Plan
+### Step 7: Write User-Facing Stories
 
-Now build the plan with **Task 1 always being "Save spec documentation"**.
+**Before thinking about tasks or implementation, write ALL user-facing stories for the feature.**
 
-Present this structure to the user:
+Stories use **Given / When / Then** BDD format. They describe **what the user or system experiences** — never how the code implements it.
 
-```
-Here's the plan structure. Task 1 saves all our shaping work before implementation begins.
+#### The discipline: stay at the user/domain level
 
----
+Stories describe observable behavior. If you catch yourself writing type names, JSON shapes, error enum cases, protocol names, or implementation patterns in a story — STOP. That detail belongs in the Acceptance Criteria (Step 8), not here.
 
-## Task 1: Save Spec Documentation
-
-Create `agent-os/specs/{folder-name}/` with:
-
-- **plan.md** — This full plan (including BDD requirements and acceptance criteria per task)
-- **shape.md** — Shaping notes (scope, decisions, context from our conversation)
-- **standards.md** — Relevant standards that apply to this work
-- **references.md** — Pointers to reference implementations studied
-- **visuals/** — Any mockups or screenshots provided
-
-## Task 2: [First implementation task]
-
-[Description based on the feature]
-
-## Task 3: [Next task]
-
-...
-
----
-
-Does this plan structure look right? I'll define BDD requirements and acceptance criteria for each task next.
-```
-
-### Step 8: Define BDD Requirements & Acceptance Criteria
-
-**This step is mandatory. Every implementation task (Task 2 onward) MUST have BDD requirements and acceptance criteria before the plan is considered complete.**
-
-For each implementation task, draft the BDD requirements and acceptance criteria directly in the plan. Do not stop to ask the user for confirmation task-by-task. The user will review and edit the finalized plan afterward if needed.
-
-If a task cannot be specified confidently because the behavior, constraint, or expected outcome is unclear, do not interrupt the flow to ask immediately. Instead, mark the relevant BDD requirement or acceptance criterion with `[NEEDS CLARIFICATION]` so the user can review those exact points in the finalized plan.
-
-#### 8a. Write BDD Requirements
-
-Use **Given / When / Then** format. Focus on the core behaviors that define the user or business outcome this task must deliver.
-
+**Good story — user/domain language:**
 ```gherkin
-### Requirement: [Behavior Name]
+### Story: Network failure on search
 
-Given [precondition or initial state]
-When [action the user or system takes]
-Then [expected observable outcome]
+Given the user searches for songs
+When the network is unavailable
+Then the app shows an error with a retry option
 ```
 
-**Rules for BDD requirements:**
-- Start with the **primary user outcome** this task must deliver
-- Add **key boundary conditions** only where they materially affect behavior, scope, or UX
-- Add **failure handling** only where it materially affects trust, correctness, or delivery risk
-- Use domain language and observable outcomes, not implementation details ("the user sees a loading indicator" not "isLoading state is set to true")
-- Keep each requirement focused on one behavior — don't combine unrelated behaviors
-- Do not try to model every edge case in BDD; capture the scenarios that shape the solution
-- If an important behavior is ambiguous, mark that requirement with `[NEEDS CLARIFICATION]` instead of guessing
+**Bad story — leaked into tech spec:**
+```gherkin
+### Story: Handle invalid JSON
 
-#### 8b. Write Acceptance Criteria
-
-A checklist of specific, testable conditions that must ALL be true for the task to be considered complete.
-
-```markdown
-### Acceptance Criteria
-
-- [ ] [Specific, observable, testable criterion]
-- [ ] [Another criterion]
-- [ ] [Boundary condition, if material]
-- [ ] [Failure handling, if material]
+Given the API returns 200 with malformed JSON
+When the response is decoded
+Then `invalidData` is thrown
 ```
 
-**Rules for acceptance criteria:**
-- Write only the criteria needed to make the task unambiguous and testable
-- Most tasks will need **3-7 criteria**; use fewer for narrowly scoped tasks and more for high-risk or user-facing flows
-- Every criterion must describe an observable outcome for a user, operator, or dependent system
-- Include boundary conditions and failure handling when they materially affect behavior, trust, or delivery risk
-- Each criterion must be independently verifiable
-- Criteria should map naturally to test cases (unit, integration, or UI)
-- Do NOT include implementation details — describe WHAT must be true, not HOW it is built
-- Avoid padding the list with obvious or low-value checks just to reach a count
-- If a criterion would not change design, implementation, or testing decisions, leave it out
-- If a criterion depends on unresolved product or UX decisions, mark it with `[NEEDS CLARIFICATION]`
+The bad example is a test case disguised as a story. The real story is "search fails gracefully." The JSON/decoding detail is an AC.
 
-#### 8c. Complete each task definition before moving on
+#### How to write stories
 
-For each task, finish the full BDD + AC definition before starting the next one.
+1. Start with the **primary user outcome** for this feature
+2. Add **key user-facing variations**: empty states, error states, edge cases the user would notice
+3. Add **system-level behaviors** only when they affect the user experience (e.g., "cached results are shown when offline")
+4. Mark ambiguous stories with `[NEEDS CLARIFICATION]`
 
-**IMPORTANT:** Do NOT ask the user for confirmation after each task. Do NOT batch unfinished placeholders across all tasks. Each task should be fully written with:
-- A short task description
-- Complete BDD requirements covering the primary outcome plus any material boundary conditions or failure handling
-- A complete acceptance criteria checklist
-
-The review loop happens only after the entire plan is assembled.
-
-Use `[NEEDS CLARIFICATION]` inline anywhere the plan cannot be completed confidently without product input.
-
-#### 8d. Example — Full task with BDD and AC
+Number every story for cross-referencing in tasks:
 
 ```markdown
-## Task 3: Implement Songs Screen Search
+## Stories
 
-Build the search bar and paginated results list on the Home screen.
-
-### Requirement: Search by text input
+### S1: Search songs by text
 
 Given the user is on the Songs Screen
 When they type a search term and submit
-Then a paginated list of matching songs is displayed
+Then a list of matching songs is displayed
 
-### Requirement: Paginated loading
+### S2: Paginated search results
 
 Given search results are displayed
 When the user scrolls to the bottom of the current results
-Then the next page of results is fetched and appended
+Then the next page of results loads and appends
 
-### Requirement: Empty search results
+### S3: No results found
 
-Given the user is on the Songs Screen
-When they search for a term with no matching results
+Given the user searches for a term
+When no matching songs exist
 Then an empty state message is displayed
 
-### Requirement: Search network failure
+### S4: Search fails due to network error
 
-Given the user is on the Songs Screen
-When they search and the network request fails
-Then an error state is displayed with a retry option
-
-### Requirement: Search result ranking [NEEDS CLARIFICATION]
-
-Given the user submits a search
-When matching songs are returned
-Then results are ordered according to the agreed ranking logic [NEEDS CLARIFICATION: relevance, popularity, or exact match first]
-
-### Acceptance Criteria
-
-- [ ] A submitted search shows results that match the entered term
-- [ ] Results display song name, artist, and album artwork
-- [ ] Pagination loads the next batch when scrolling near the bottom
-- [ ] Empty state is shown when API returns zero results
-- [ ] Error state is shown on network failure with a retry action
-- [ ] Loading indicator is visible during the first search request
-- [ ] If the user submits a new search before the previous one completes, the screen updates to the latest submitted search results
-- [ ] Long song and artist names remain readable without breaking the layout
-- [ ] [NEEDS CLARIFICATION] Search results are ordered according to the agreed ranking logic
+Given the user searches for songs
+When the network is unavailable
+Then an error state is shown with a retry option
 ```
 
-### Step 9: Complete the Plan
+**Rules:**
+- Every story must describe something a user, QA tester, or product manager would recognize
+- Infrastructure work (protocols, abstractions, mappers) does NOT get its own story — it exists to serve a story
+- Keep the list focused. 4-10 stories per feature is typical. If you have 20+, the feature scope is too big — split it.
 
-After all tasks have defined BDD requirements and acceptance criteria, assemble the full plan.
+### Step 8: Write Acceptance Criteria
+
+**After all stories are written, write the full Acceptance Criteria checklist for the feature.**
+
+ACs are the technical contract. Unlike stories, ACs CAN and SHOULD include implementation details — type names, specific behaviors, boundary conditions, error cases. This is where "empty results returns `[]`, not an error" belongs.
+
+#### How to write ACs
+
+ACs are a flat checklist for the entire feature. They cover everything needed to consider the feature **done**: the happy paths from the stories, plus all the technical edge cases, boundary conditions, and infrastructure requirements that stories intentionally skip.
+
+```markdown
+## Acceptance Criteria
+
+### Search & Pagination
+- [ ] Search sends a request with query, limit, and offset parameters
+- [ ] Results display song name, artist name, and album artwork
+- [ ] Pagination appends the next batch when scrolling near the bottom
+- [ ] Empty results returns an empty array, not an error
+- [ ] A new search cancels any in-flight previous search
+
+### Error Handling
+- [ ] Network failure surfaces a connectivity error to the caller
+- [ ] Non-200 HTTP status surfaces an invalid data error
+- [ ] Malformed response body surfaces an invalid data error
+
+### Infrastructure
+- [ ] HTTP client abstraction is protocol-based and replaceable
+- [ ] JSON-to-domain mapping happens at the network boundary
+- [ ] Response DTOs are internal — never exposed to other modules
+- [ ] Package compiles independently with `swift build`
+```
+
+**Rules:**
+- Group ACs by theme for readability, but they are a single flat checklist
+- Every AC must be independently verifiable
+- ACs can be technical — they are the implementation contract
+- Most features need **8-20 ACs**. Fewer means you're missing edge cases. More means the scope is too big.
+- Tag each AC with `[NEEDS CLARIFICATION]` if it depends on unresolved decisions
+
+### Step 9: Break Into Tasks
+
+**Now that stories and ACs are defined, break the work into implementation tasks.**
+
+Each task references which stories and ACs it delivers. Tasks are the execution plan — they define the order of work and what "done" looks like for each chunk.
+
+#### Task structure
+
+```markdown
+## Tasks
+
+### Task 1: Save Spec Documentation
+
+Create `agent-os/specs/{folder-name}/` with:
+
+- **plan.md** — This full plan
+- **shape.md** — Shaping notes
+- **standards.md** — Relevant standards
+- **references.md** — Pointers to reference implementations
+- **visuals/** — Any mockups or screenshots provided
+
+### Task 2: {Task Name}
+
+{Short description of what this task builds}
+
+**Stories:** S1, S3
+**ACs:** [list the specific ACs this task must satisfy]
+
+### Task 3: {Task Name}
+
+{Short description}
+
+**Stories:** S2
+**ACs:** [list ACs]
+
+...
+
+### Task N: Validate All ACs
+
+Walk through every acceptance criterion and verify it has been implemented and tested. Flag any gaps.
+
+**ACs:** All
+```
+
+**Rules:**
+- Task 1 is always "Save Spec Documentation"
+- The **last task** is always "Validate All ACs" — a dedicated pass to confirm nothing was missed
+- Every story must be covered by at least one task
+- Every AC must be covered by at least one task
+- Tasks should be ordered by dependency (build foundations before features)
+- Tests are NOT a separate task — each implementation task includes its tests
+- Keep tasks focused: each task should be completable in one session
+
+**IMPORTANT:** Do NOT duplicate the stories or ACs inside each task. Just reference them by number/name. The stories and ACs sections are the single source of truth. Tasks point to them.
+
+#### How many tasks?
+
+- Very small features: 3 tasks (save spec + 1 implementation + validate)
+- Typical features: 4-7 tasks
+- Large features: 7-10 tasks. If you need more, the feature should be split into multiple specs.
+
+### Step 10: Assemble the Plan
+
+After stories, ACs, and tasks are all written, assemble the full plan for review.
 
 The plan should include:
-- All tasks with their descriptions
-- All BDD requirements per task
-- All acceptance criteria per task
+- All stories (Step 7)
+- All acceptance criteria (Step 8)
+- All tasks with story/AC references (Step 9)
 - Notes from reference implementations (Step 3)
 - Notes from standards (Step 5)
 
-Each task should be specific and actionable.
+Present the complete plan to the user for review.
 
-### Step 10: Ready for Execution
+### Step 11: Ready for Execution
 
 When the full plan is ready:
 
 ```
-Plan complete with BDD requirements and acceptance criteria for all tasks.
+Plan complete with stories, acceptance criteria, and tasks.
 
 When you approve and execute:
 
-1. Task 1 will save all spec documentation first
-2. Then all implementation tasks will proceed, following their acceptance criteria
-3. After the production code for those acceptance criteria is ready, test the behavior defined by the same plan
-4. Testing must cover the primary case and the relevant error cases
-5. Each task's acceptance criteria define "done"
+1. Task 1 saves all spec documentation
+2. Implementation tasks proceed in order, following their referenced ACs
+3. Each task includes tests for the behaviors it implements
+4. The final task validates that ALL acceptance criteria have been met
+5. A story is "done" when all its referenced ACs pass
 
 Ready to start? (approve / adjust)
 ```
@@ -311,7 +332,7 @@ The spec folder will contain:
 
 ```
 agent-os/specs/{YYYY-MM-DD-HHMM-feature-slug}/
-├── plan.md           # Full plan with BDD requirements and AC per task
+├── plan.md           # Full plan: stories, ACs, tasks
 ├── shape.md          # Shaping decisions and context
 ├── standards.md      # Which standards apply and key points
 ├── references.md     # Pointers to similar code
@@ -329,38 +350,69 @@ The plan.md MUST follow this structure:
 
 [Brief description of what this plan covers]
 
-## Task 1: Save Spec Documentation
+**Standards applied:**
 
-[Standard task 1 content]
+[References to applied standards]
 
-## Task 2: {Task Name}
+---
+
+## Stories
+
+### S1: {Story Name}
+
+Given {precondition}
+When {action}
+Then {observable outcome}
+
+### S2: {Story Name}
+
+Given {precondition}
+When {action}
+Then {observable outcome}
+
+...
+
+---
+
+## Acceptance Criteria
+
+### {Theme}
+- [ ] {Criterion}
+- [ ] {Criterion}
+
+### {Theme}
+- [ ] {Criterion}
+- [ ] {Criterion}
+
+---
+
+## Tasks
+
+### Task 1: Save Spec Documentation
+
+Create `agent-os/specs/{folder-name}/` with plan.md, shape.md, standards.md, references.md.
+
+### Task 2: {Task Name}
 
 {Description}
 
-### Requirement: {Behavior Name}
+**Stories:** S1, S3
+**ACs:** {list}
 
-Given {precondition}
-When {action}
-Then {outcome}
+### Task 3: {Task Name}
 
-### Requirement: {Behavior Name}
+{Description}
 
-Given {precondition}
-When {action}
-Then {outcome}
-
-### Acceptance Criteria
-
-- [ ] {Criterion}
-- [ ] {Criterion}
-- [ ] {Boundary condition, if material}
-- [ ] {Failure handling, if material}
-
-## Task 3: {Task Name}
-
-[Same structure as Task 2]
+**Stories:** S2
+**ACs:** {list}
 
 ...
+
+### Task N: Validate All ACs
+
+Walk through every acceptance criterion and verify it has been implemented and tested. Flag any gaps.
+
+**ACs:** All
 ```
 
 ## shape.md Content
@@ -437,5 +489,7 @@ The following standards apply to this work.
 - **Visuals are optional** — Not every feature needs mockups.
 - **Standards guide, not dictate** — They inform the plan but aren't always mandatory.
 - **Specs are discoverable** — Months later, someone can find this spec and understand what was built and why.
-- **BDD covers behavior, not implementation** — Write requirements in user/domain language. How to implement and test is governed by standards.
-- **Tests stay in the same plan, but come after implementation** — First implement all planned production code to satisfy the acceptance criteria. Then test the defined behavior, covering the primary case and the relevant error cases.
+- **Stories are for humans, ACs are the contract** — A PM reads stories. A developer reads ACs. Both are needed, and they serve different audiences.
+- **Never duplicate** — Stories and ACs are written once. Tasks reference them. If you're copy-pasting a story into a task, you're doing it wrong.
+- **Tests stay in the same task** — First implement production code to satisfy the ACs, then test the behavior. There is no separate "testing task."
+- **The validation task catches drift** — By the time you reach the last task, some ACs may have been forgotten or partially implemented. The validation pass exists to catch that.
