@@ -1,0 +1,19 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/master.swiftdeps"
+  },
+  "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/Models/Song.swift": {
+    "dependencies": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/Song.d",
+    "object": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/Song.swift.o",
+    "swiftmodule": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/Song~partial.swiftmodule",
+    "swift-dependencies": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/Song.swiftdeps",
+    "diagnostics": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/Song.dia"
+  },
+  "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/Repositories/SongRepository.swift": {
+    "dependencies": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/SongRepository.d",
+    "object": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/SongRepository.swift.o",
+    "swiftmodule": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/SongRepository~partial.swiftmodule",
+    "swift-dependencies": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/SongRepository.swiftdeps",
+    "diagnostics": "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/SongRepository.dia"
+  }
+}

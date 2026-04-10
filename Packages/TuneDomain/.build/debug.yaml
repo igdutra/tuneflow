@@ -1,0 +1,47 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "PackageStructure": ["<PackageStructure>"]
+  "TuneDomain-arm64-apple-macosx26.0-debug.module": ["<TuneDomain-arm64-apple-macosx26.0-debug.module>"]
+  "main": ["<TuneDomain-arm64-apple-macosx26.0-debug.module>"]
+  "test": ["<TuneDomain-arm64-apple-macosx26.0-debug.module>"]
+default: "main"
+nodes:
+  "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/Models/Song.swift","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/Repositories/SongRepository.swift"]
+    outputs: ["/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/sources"]
+    description: "Write auxiliary file /Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/sources"
+
+  "/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/swift-version-6F43BFB1766D141.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode 26.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/swift-version-6F43BFB1766D141.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/swift-version-6F43BFB1766D141.txt"
+
+  "<TuneDomain-arm64-apple-macosx26.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/Song.swift.o","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/SongRepository.swift.o","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/Modules/TuneDomain.swiftmodule"]
+    outputs: ["<TuneDomain-arm64-apple-macosx26.0-debug.module>"]
+
+  "C.TuneDomain-arm64-apple-macosx26.0-debug.module":
+    tool: shell
+    inputs: ["/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/Models/Song.swift","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/Repositories/SongRepository.swift","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/swift-version-6F43BFB1766D141.txt","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/sources"]
+    outputs: ["/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/Song.swift.o","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/SongRepository.swift.o","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/Modules/TuneDomain.swiftmodule"]
+    description: "Compiling Swift Module 'TuneDomain' (2 sources)"
+    args: ["/Applications/Xcode 26.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","TuneDomain","-emit-dependencies","-emit-module","-emit-module-path","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/Modules/TuneDomain.swiftmodule","-output-file-map","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/sources","-I","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx26.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/index/store","-Onone","-enable-testing","-j8","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/.build/arm64-apple-macosx/debug/TuneDomain.build/include/TuneDomain-Swift.h","-swift-version","6","-plugin-path","/Applications/Xcode 26.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk","-F","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk","-Xcc","-F","-Xcc","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode 26.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","tunedomain"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Sources/TuneDomain/","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Package.swift","/Users/ivo/Desktop/Projetos/TuneFlow/Packages/TuneDomain/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+
