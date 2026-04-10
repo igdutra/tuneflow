@@ -68,7 +68,8 @@ private extension URLSessionHTTPClientTests {
     func anyHTTPURLResponse(url: URL, statusCode: Int) -> HTTPURLResponse {
         HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: nil, headerFields: nil)!
     }
-
+    
+    // TODO: Instead of using NSError, create struct AnyError: Swift.Error { }
     func anyNSError() -> NSError {
         NSError(domain: "test", code: 0)
     }
