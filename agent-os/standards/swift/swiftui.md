@@ -1,5 +1,7 @@
 # SwiftUI Standard
 
+**IMPORTANT**: Always refer to the DESING.md file.
+
 ## Non-Negotiable Defaults
 
 - `@Observable` for all new view models — mandatory, no exceptions
