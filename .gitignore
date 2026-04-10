@@ -6,6 +6,8 @@
 
 # Xcode user data
 *.xcuserdata/
+xcuserdata/
+*.xcodeproj/xcuserdata/
 
 # Build products
 build/
