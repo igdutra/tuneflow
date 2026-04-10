@@ -14,7 +14,7 @@ struct TuneFlowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            SongsComposer.compose(songRepository: songRepository)
+            RootView(songRepository: songRepository)
                 .preferredColorScheme(.dark)
         }
     }

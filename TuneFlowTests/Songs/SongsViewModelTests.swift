@@ -167,7 +167,7 @@ private extension SongsViewModelTests {
 
     func makeSUT(source: SourceLocation = #_sourceLocation) -> SUTBundle {
         let spy = SongRepositorySpy()
-        let sut = SongsViewModel(repository: spy)
+        let sut = SongsViewModel(repository: spy, router: AppRouter())
         _ = source
         return (sut, spy)
     }
