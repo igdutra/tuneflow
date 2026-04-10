@@ -5,6 +5,7 @@ import TuneDomain
 @Observable
 final class SongsViewModel {
     private let repository: SongRepository
+    private let router: AppRouter
 
     private(set) var state: ViewState = .idle
     private(set) var songs: [Song] = []
@@ -16,8 +17,17 @@ final class SongsViewModel {
 
     var hasResults: Bool { !songs.isEmpty }
 
-    init(repository: SongRepository) {
+    init(repository: SongRepository, router: AppRouter) {
         self.repository = repository
+        self.router = router
+    }
+
+    func selectSong(_ song: Song) {
+        router.push(.player(song))
+    }
+
+    func showMoreOptions(for song: Song) {
+        router.present(.moreOptions(song))
     }
 
     func search() async {
