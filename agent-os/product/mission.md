@@ -11,7 +11,7 @@ Users need a fast, responsive way to find music, preview tracks, and explore alb
 
 ## Solution
 
-An iOS app that lets users search and discover songs through the Apple iTunes Search API, listen to 30-second audio previews, and browse albums — with an offline-first experience.
+TuneFlow is an iOS app that lets users search and discover songs through the Apple iTunes Search API, listen to 30-second audio previews, and browse albums — with an offline-first experience.
 
 Key differentiators:
 

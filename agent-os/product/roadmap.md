@@ -3,7 +3,7 @@
 ## Phase 1: MVP
 
 ### Track 1 — App Shell & Navigation
-- Splash screen with app branding, smooth transition to Home
+- Splash screen with TuneFlow branding, smooth transition to Home
 - Full navigation structure between all screens
 
 ### Track 2 — Network Layer
