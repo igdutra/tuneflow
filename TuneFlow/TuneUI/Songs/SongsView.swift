@@ -38,10 +38,16 @@ struct SongsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.black, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-        }
-        .searchable(text: $viewModel.searchText, prompt: "Search")
-        .onSubmit(of: .search) {
-            Task { await viewModel.search() }
+            // Note: if needed, search can be transformed to a custom component
+            // to match the design more closely. Going with native for the moment.
+            .searchable(
+                text: $viewModel.searchText,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Search"
+            )
+            .onSubmit(of: .search) {
+                Task { await viewModel.search() }
+            }
         }
     }
 }
