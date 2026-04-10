@@ -31,5 +31,13 @@ let package = Package(
                 .product(name: "TuneDomain", package: "TuneDomain"),
             ]
         ),
+        // Integration Test target: making a real HTTTP call separate target so that unit tests can run faster.
+        .testTarget(
+            name: "TuneAPIIntegrationTests",
+            dependencies: [
+                "TuneAPI",
+                .product(name: "TuneDomain", package: "TuneDomain"),
+            ]
+        ),
     ]
 )
