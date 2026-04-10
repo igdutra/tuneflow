@@ -4,7 +4,6 @@ import TuneDomain
 struct RootView: View {
     private let songRepository: any SongRepository
     @State private var router = AppRouter()
-    @State private var isSplashVisible = true
 
     init(songRepository: any SongRepository) {
         self.songRepository = songRepository
@@ -27,16 +26,5 @@ struct RootView: View {
             }
         }
         .environment(router)
-        .overlay {
-            if isSplashVisible {
-                SplashView()
-                    .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut(duration: 0.5), value: isSplashVisible)
-        .task {
-            try? await Task.sleep(for: .seconds(2))
-            isSplashVisible = false
-        }
     }
 }
