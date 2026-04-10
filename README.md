@@ -1,5 +1,7 @@
 # TuneFlow
 
+[![CI](https://github.com/igdutra/tuneflow/actions/workflows/ci.yml/badge.svg)](https://github.com/igdutra/tuneflow/actions/workflows/ci.yml)
+
 TuneFlow is a SwiftUI music discovery app for searching songs, exploring albums, and previewing tracks with the iTunes Search API.
 
 This project is built with a spec-driven development workflow using AgentOS V3, emphasizing clean architecture, testability, and an offline-first user experience.
@@ -20,6 +22,30 @@ This project is built with a spec-driven development workflow using AgentOS V3, 
 - Browse album details
 - Preview tracks in a player flow
 - Cache recently played songs for offline-first UX
+
+## Running Tests
+
+Tests live in `Packages/TuneAPI`. There are two test targets:
+
+| Target | What it tests |
+|--------|---------------|
+| `TuneAPITests` | Unit tests — no network, runs fast |
+| `TuneAPIIntegrationTests` | Integration tests — hits the real iTunes API |
+
+Run unit tests:
+```bash
+swift test --package-path Packages/TuneAPI --filter TuneAPITests
+```
+
+Run integration tests:
+```bash
+swift test --package-path Packages/TuneAPI --filter TuneAPIIntegrationTests
+```
+
+Run both:
+```bash
+swift test --package-path Packages/TuneAPI
+```
 
 ## Custom /agent-os/shape-spec command
 

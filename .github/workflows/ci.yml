@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: TuneAPI Tests
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: swift test --package-path Packages/TuneAPI --filter TuneAPITests
+
+      - name: Run integration tests
+        run: swift test --package-path Packages/TuneAPI --filter TuneAPIIntegrationTests
