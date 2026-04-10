@@ -1,2 +1,9 @@
 # Agent OS Standards Index
 
+swift:
+  module-composition:
+    description: TuneFlow layer names (TuneUI/Domain/TuneCache/TuneAPI), dependency rules, TuneFlowApp as composition root, protocol boundary sketches, DTO strategy, mappers, and feature composers
+  swiftui:
+    description: "@MainActor @Observable view models, ViewState pattern, content+viewData split, state overlay rendering, method references, property wrappers, and modern API defaults"
+  testing:
+    description: Swift Testing — struct suites, makeSUT() with SUTBundle, spy vs stub distinction, expect/require, parameterized tests, @MainActor rules, parallel safety, XCTest migration
