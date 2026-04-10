@@ -26,6 +26,10 @@ final class SongsViewModel {
         router.push(.player(song))
     }
 
+    func showMoreOptions(for song: Song) {
+        router.present(.moreOptions(song))
+    }
+
     func search() async {
         guard !searchText.isEmpty else {
             songs = []

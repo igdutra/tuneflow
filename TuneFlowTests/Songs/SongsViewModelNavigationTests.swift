@@ -23,6 +23,14 @@ struct SongsViewModelNavigationTests {
 
         #expect(router.path.count == 2)
     }
+
+    @Test func showMoreOptions_setsSheet() {
+        let (sut, _, router) = makeSUT()
+
+        sut.showMoreOptions(for: .fixture())
+
+        #expect(router.sheet != nil)
+    }
 }
 
 // MARK: - Helpers

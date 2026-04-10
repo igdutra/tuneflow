@@ -17,8 +17,12 @@ struct SongsView: View {
                     artworkURL: song.artworkURL,
                     title: song.trackName,
                     artist: song.artistName,
-                    onMoreTapped: { /* TODO: Track 6 — Bottom Sheet */ }
+                    onMoreTapped: { viewModel.showMoreOptions(for: song) }
                 )
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    viewModel.selectSong(song)
+                }
                 .onAppear {
                     if song.id == viewModel.songs.last?.id {
                         Task { await viewModel.loadMore() }
