@@ -1,4 +1,5 @@
 import TuneDomain
+import SwiftUI
 
 @MainActor
 @Observable
