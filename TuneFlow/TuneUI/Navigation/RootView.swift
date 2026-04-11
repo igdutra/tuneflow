@@ -22,7 +22,7 @@ struct RootView: View {
         .sheet(item: $router.sheet) { sheet in
             switch sheet {
             case .moreOptions(let song):
-                Text("More options — \(song.trackName)") // Track 6 placeholder
+                MoreOptionsView(viewModel: MoreOptionsViewModel(song: song))
             }
         }
         .environment(router)
