@@ -16,6 +16,17 @@ struct SearchSongsIntegrationTests {
         #expect(results.count <= 5)
     }
 
+    @Test("fetchAlbum returns Discovery by Daft Punk")
+    func fetchAlbum_withDaftPunkDiscovery_returnsAlbum() async throws {
+        let sut = makeSUT()
+
+        let album = try await sut.fetchAlbum(collectionId: 697194953)
+
+        #expect(album.title == "Discovery")
+        #expect(album.artistName == "Daft Punk")
+        #expect(album.tracks.isEmpty == false)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> RemoteSongRepository {
