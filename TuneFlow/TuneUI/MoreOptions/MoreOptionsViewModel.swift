@@ -5,14 +5,18 @@ import SwiftUI
 @Observable
 final class MoreOptionsViewModel {
     private let song: Song
+    private let router: AppRouter
 
     var songTitle: String { song.trackName }
     var artistName: String { song.artistName }
 
-    init(song: Song) {
+    init(song: Song, router: AppRouter) {
         self.song = song
+        self.router = router
     }
 
-    // Track 7 stub — no-op until album route exists
-    func viewAlbum() {}
+    func viewAlbum() {
+        router.dismissSheet()
+        router.push(.album(collectionId: song.collectionId))
+    }
 }

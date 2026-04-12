@@ -16,13 +16,19 @@ struct RootView: View {
                     switch route {
                     case .player(let song):
                         Text("Player — \(song.trackName)") // Track 5 placeholder
+                    case .album(let collectionId):
+                        AlbumComposer.compose(
+                            collectionId: collectionId,
+                            songRepository: songRepository,
+                            router: router
+                        )
                     }
                 }
         }
         .sheet(item: $router.sheet) { sheet in
             switch sheet {
             case .moreOptions(let song):
-                MoreOptionsView(viewModel: MoreOptionsViewModel(song: song))
+                MoreOptionsView(viewModel: MoreOptionsViewModel(song: song, router: router))
             }
         }
         .environment(router)

@@ -9,40 +9,51 @@ struct MoreOptionsViewModelTests {
     // MARK: - Display Properties
 
     @Test func init_exposesCorrectSongTitle() {
-        let (sut, song) = makeSUT(song: .fixture(trackName: "Purple Rain"))
+        let (sut, song, _) = makeSUT(song: .fixture(trackName: "Purple Rain"))
 
         #expect(sut.songTitle == song.trackName)
     }
 
     @Test func init_exposesCorrectArtistName() {
-        let (sut, song) = makeSUT(song: .fixture(artistName: "Prince"))
+        let (sut, song, _) = makeSUT(song: .fixture(artistName: "Prince"))
 
         #expect(sut.artistName == song.artistName)
     }
 
-    // MARK: - viewAlbum stub
+    // MARK: - viewAlbum
 
-    @Test func viewAlbum_doesNotMutateDisplayProperties() {
-        let (sut, song) = makeSUT()
+    @Test func viewAlbum_pushesAlbumRouteWithSongCollectionId() {
+        let song = Song.fixture(collectionId: 42)
+        let (sut, _, router) = makeSUT(song: song)
 
         sut.viewAlbum()
 
-        #expect(sut.songTitle == song.trackName)
-        #expect(sut.artistName == song.artistName)
+        #expect(router.path.count == 1)
+    }
+
+    @Test func viewAlbum_dismissesSheet() {
+        let song = Song.fixture(collectionId: 42)
+        let (sut, _, router) = makeSUT(song: song)
+        router.present(.moreOptions(song))
+
+        sut.viewAlbum()
+
+        #expect(router.sheet == nil)
     }
 }
 
 // MARK: - Helpers
 
 private extension MoreOptionsViewModelTests {
-    typealias SUTBundle = (sut: MoreOptionsViewModel, song: Song)
+    typealias SUTBundle = (sut: MoreOptionsViewModel, song: Song, router: AppRouter)
 
     func makeSUT(
         song: Song = .fixture(),
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundle {
-        let sut = MoreOptionsViewModel(song: song)
+        let router = AppRouter()
+        let sut = MoreOptionsViewModel(song: song, router: router)
         _ = source
-        return (sut, song)
+        return (sut, song, router)
     }
 }
