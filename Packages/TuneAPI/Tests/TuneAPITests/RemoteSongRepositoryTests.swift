@@ -108,6 +108,44 @@ struct RemoteSongRepositoryTests {
             _ = try await sut.search(query: "Beatles", limit: 20, offset: 0)
         }
     }
+
+    // MARK: - fetchAlbum URL Construction
+
+    @Test func fetchAlbum_buildsCorrectURL() async throws {
+        let lookupURL = URL(string: "https://itunes.apple.com/lookup")!
+        let (sut, clientSpy) = makeSUT(lookupBaseURL: lookupURL)
+        clientSpy.stub(data: emptyLookupData(), response: anyHTTPURLResponse(statusCode: 200))
+
+        _ = try? await sut.fetchAlbum(collectionId: 123)
+
+        let requestedURL = try #require(clientSpy.requestedURLs.first)
+        let components = try #require(URLComponents(url: requestedURL, resolvingAgainstBaseURL: false))
+        let items = try #require(components.queryItems)
+
+        #expect(items.first(where: { $0.name == "id" })?.value == "123")
+        #expect(items.first(where: { $0.name == "entity" })?.value == "song")
+    }
+
+    // MARK: - fetchAlbum Failures
+
+    @Test func fetchAlbum_onConnectivityError_throwsConnectivityError() async throws {
+        let (sut, clientSpy) = makeSUT()
+        clientSpy.stub(error: RemoteSongRepositoryError.connectivity)
+
+        await #expect(throws: RemoteSongRepositoryError.connectivity) {
+            _ = try await sut.fetchAlbum(collectionId: 123)
+        }
+    }
+
+    @Test(arguments: [199, 201, 300, 400, 500])
+    func fetchAlbum_onNon200HTTPResponse_throwsInvalidData(statusCode: Int) async throws {
+        let (sut, clientSpy) = makeSUT()
+        clientSpy.stub(data: emptyLookupData(), response: anyHTTPURLResponse(statusCode: statusCode))
+
+        await #expect(throws: RemoteSongRepositoryError.invalidData) {
+            _ = try await sut.fetchAlbum(collectionId: 123)
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -117,10 +155,11 @@ private extension RemoteSongRepositoryTests {
 
     func makeSUT(
         baseURL: URL = URL(string: "https://itunes.apple.com/search")!,
+        lookupBaseURL: URL = URL(string: "https://itunes.apple.com/lookup")!,
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundle {
         let clientSpy = HTTPClientSpy()
-        let sut = RemoteSongRepository(client: clientSpy, baseURL: baseURL)
+        let sut = RemoteSongRepository(client: clientSpy, baseURL: baseURL, lookupBaseURL: lookupBaseURL)
         _ = source
         return (sut, clientSpy)
     }
@@ -135,6 +174,12 @@ private extension RemoteSongRepositoryTests {
     }
 
     func emptyEnvelopeData() -> Data {
+        Data("""
+        {"resultCount":0,"results":[]}
+        """.utf8)
+    }
+
+    func emptyLookupData() -> Data {
         Data("""
         {"resultCount":0,"results":[]}
         """.utf8)
@@ -158,6 +203,7 @@ private extension RemoteSongRepositoryTests {
             "trackName": song.trackName,
             "artistName": song.artistName,
             "collectionName": song.albumName,
+            "collectionId": song.collectionId,
             "artworkUrl100": song.artworkURL.absoluteString,
         ]
         if includePreviewURL, let previewURL = song.previewURL {

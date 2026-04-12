@@ -87,6 +87,7 @@ private extension RemoteSongMapperTests {
             "trackName": song.trackName,
             "artistName": song.artistName,
             "collectionName": song.albumName,
+            "collectionId": song.collectionId,
             "artworkUrl100": song.artworkURL.absoluteString,
         ]
         if includePreviewURL, let previewURL = song.previewURL {

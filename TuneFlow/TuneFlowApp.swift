@@ -9,7 +9,8 @@ struct TuneFlowApp: App {
 
     init() {
         let baseURL = URL(string: "https://itunes.apple.com/search")!
-        songRepository = RemoteSongRepository(client: httpClient, baseURL: baseURL)
+        let lookupBaseURL = URL(string: "https://itunes.apple.com/lookup")!
+        songRepository = RemoteSongRepository(client: httpClient, baseURL: baseURL, lookupBaseURL: lookupBaseURL)
     }
 
     var body: some Scene {

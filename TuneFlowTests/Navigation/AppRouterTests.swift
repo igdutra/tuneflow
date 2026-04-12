@@ -65,6 +65,16 @@ struct AppRouterTests {
         #expect(sut.path.count == 0)
     }
 
+    // MARK: - Album Route
+
+    @Test func push_albumRoute_appendsToPath() {
+        let sut = makeSUT()
+
+        sut.push(.album(collectionId: 42))
+
+        #expect(sut.path.count == 1)
+    }
+
     // MARK: - Sheet
 
     @Test func present_setsSheet() {

@@ -72,6 +72,6 @@ struct MoreOptionsView: View {
 #Preview {
     Color.clear
            .sheet(isPresented: .constant(true)) {
-               MoreOptionsView(viewModel: MoreOptionsViewModel(song: .previewFixture))
+               MoreOptionsView(viewModel: MoreOptionsViewModel(song: .previewFixture, router: AppRouter()))
            }
 }
