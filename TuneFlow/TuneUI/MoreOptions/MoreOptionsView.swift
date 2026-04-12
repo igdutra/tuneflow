@@ -16,6 +16,8 @@ struct MoreOptionsView: View {
             actionRows
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        // TODO: Investigate padding on this sheet
+        // TODO: Maybe instead of hardcoded height do .fraction(0.25)
         .presentationDetents([.height(MoreOptionsView.compactSheetHeight)])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(12)
@@ -43,7 +45,6 @@ struct MoreOptionsView: View {
                 .foregroundStyle(Color.white)
                 .multilineTextAlignment(.center)
         }
-        .padding(.horizontal, 16)
         .padding(.bottom, 24)
     }
 
@@ -64,4 +65,13 @@ struct MoreOptionsView: View {
         }
         .buttonStyle(.plain)
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    Color.clear
+           .sheet(isPresented: .constant(true)) {
+               MoreOptionsView(viewModel: MoreOptionsViewModel(song: .previewFixture))
+           }
 }
