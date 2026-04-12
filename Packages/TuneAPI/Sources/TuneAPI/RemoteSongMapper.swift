@@ -27,6 +27,7 @@ enum RemoteSongMapper {
             trackName: dto.trackName,
             artistName: dto.artistName,
             albumName: dto.collectionName,
+            collectionId: dto.collectionId,
             artworkURL: artworkURL,
             previewURL: previewURL,
             trackNumber: dto.trackNumber

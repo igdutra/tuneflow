@@ -5,6 +5,7 @@ struct RemoteSongDTO: Decodable {
     let trackName: String
     let artistName: String
     let collectionName: String
+    let collectionId: Int
     let artworkUrl100: String
     let previewUrl: String?
     let trackNumber: Int?
