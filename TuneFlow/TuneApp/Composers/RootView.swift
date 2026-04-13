@@ -5,15 +5,18 @@ struct RootView: View {
     private let songRepository: any SongRepository
     private let audioService: any AudioPlayerService
     private let recentlyPlayedRepository: any RecentlyPlayedRepository
+    private let trackPlayerScreenViewed: TrackPlayerScreenViewed
     @State private var router = AppRouter()
 
     init(
         songRepository: any SongRepository,
         audioService: any AudioPlayerService,
+        trackPlayerScreenViewed: @escaping TrackPlayerScreenViewed,
         recentlyPlayedRepository: any RecentlyPlayedRepository
     ) {
         self.songRepository = songRepository
         self.audioService = audioService
+        self.trackPlayerScreenViewed = trackPlayerScreenViewed
         self.recentlyPlayedRepository = recentlyPlayedRepository
     }
 
@@ -33,6 +36,7 @@ struct RootView: View {
                         currentIndex: currentIndex,
                         audioService: audioService,
                         recentlyPlayedRepository: recentlyPlayedRepository,
+                        trackScreenViewed: trackPlayerScreenViewed,
                         router: router
                     )
                 case .album(let collectionId):

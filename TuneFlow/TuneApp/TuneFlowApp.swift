@@ -4,12 +4,14 @@ import SwiftUI
 import TuneAPI
 import TuneDomain
 
+
 @main
 struct TuneFlowApp: App {
     private let httpClient = URLSessionHTTPClient()
     private let songRepository: any SongRepository
     private let audioService = AVAudioPlayerService()
     private let recentlyPlayedRepository: any RecentlyPlayedRepository
+    private let eventTracker: EventTracker = InMemoryAnalyticsTracker()
 
     init() {
         AVPlayer.isObservationEnabled = true
@@ -27,9 +29,22 @@ struct TuneFlowApp: App {
             RootView(
                 songRepository: songRepository,
                 audioService: audioService,
+                trackPlayerScreenViewed: { [weak eventTracker] song in
+                    eventTracker?.track(PlayerEvent.screenViewed(songName: song.trackName, artist: song.artistName))
+                },
                 recentlyPlayedRepository: recentlyPlayedRepository
             )
             .preferredColorScheme(.dark)
         }
+    }
+}
+
+// MARK: - Observability
+
+public typealias TrackPlayerScreenViewed = (Song) -> Void
+
+private extension TuneFlowApp {
+    func trackPlayerScreenViewed(_ song: Song) {
+        eventTracker.track(PlayerEvent.screenViewed(songName: song.trackName, artist: song.artistName))
     }
 }

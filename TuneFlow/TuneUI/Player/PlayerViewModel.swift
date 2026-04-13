@@ -44,6 +44,12 @@ final class PlayerViewModel {
     @ObservationIgnored private let currentIndex: Int
     @ObservationIgnored private let recentlyPlayedRepository: any RecentlyPlayedRepository
     @ObservationIgnored private var didSaveToRecentlyPlayed = false
+    
+    // MARK: - Observability
+    
+    // Note: In order to, in the future, move TuneUI to its own module, we must not reference PlayerEvent here.
+    // We could inject both Tracker+Event or simply inject the closure and compose it on levels above.
+    @ObservationIgnored private var trackScreenViewed: (Song) -> Void
 
     // MARK: - Task Launcher
     //
@@ -98,6 +104,7 @@ final class PlayerViewModel {
         currentIndex: Int,
         audioService: any AudioPlayerService,
         recentlyPlayedRepository: any RecentlyPlayedRepository,
+        trackScreenViewed: @escaping (Song) -> Void,
         router: AppRouter
     ) {
         self.song = song
@@ -105,6 +112,7 @@ final class PlayerViewModel {
         self.currentIndex = currentIndex
         self.audioService = audioService
         self.recentlyPlayedRepository = recentlyPlayedRepository
+        self.trackScreenViewed = trackScreenViewed
         self.router = router
     }
 
@@ -117,6 +125,7 @@ final class PlayerViewModel {
         }
         guard let url = song.previewURL else { return }
         audioService.play(url: url)
+        trackScreenViewed(song)
     }
 
     func onDisappear() {

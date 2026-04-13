@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol EventTracker {
+public protocol EventTracker: AnyObject {
     func track(_ event: any TuneEvent)
 }
