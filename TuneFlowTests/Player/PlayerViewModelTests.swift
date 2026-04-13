@@ -231,6 +231,24 @@ struct PlayerViewModelTests {
 
         #expect(sut.artworkURL?.absoluteString == "https://artwork.com/600x600.jpg")
     }
+
+    // MARK: - Event Tracking
+
+    @Test("onAppear calls trackScreenViewed closure to emit player event")
+    func onAppear_tracksPlayerScreenViewedEvent() {
+        let song = Song.fixture(trackName: "Test Song", artistName: "Test Artist")
+        var trackedSong: Song?
+
+        let trackScreenViewed: (Song) -> Void = { song in
+            trackedSong = song
+        }
+
+        let (sut, _) = makeSUT(song: song, trackScreenViewed: trackScreenViewed)
+
+        sut.onAppear()
+
+        #expect(trackedSong == song)
+    }
 }
 
 // MARK: - Helpers
@@ -272,6 +290,7 @@ private extension PlayerViewModelTests {
         song: Song = .fixture(),
         queue: [Song] = [],
         currentIndex: Int = 0,
+        trackScreenViewed: @escaping (Song) -> Void = { _ in },
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundleFull {
         let audioSpy = AudioPlayerServiceSpy()
@@ -283,6 +302,7 @@ private extension PlayerViewModelTests {
             currentIndex: currentIndex,
             audioService: audioSpy,
             recentlyPlayedRepository: repoSpy,
+            trackScreenViewed: trackScreenViewed,
             router: router
         )
         _ = source
@@ -293,9 +313,10 @@ private extension PlayerViewModelTests {
         song: Song = .fixture(),
         queue: [Song] = [],
         currentIndex: Int = 0,
+        trackScreenViewed: @escaping (Song) -> Void = { _ in },
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundle {
-        let (sut, audioSpy, router, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
+        let (sut, audioSpy, router, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, trackScreenViewed: trackScreenViewed, source: source)
         return (sut, audioSpy, router)
     }
 
@@ -303,9 +324,10 @@ private extension PlayerViewModelTests {
         song: Song = .fixture(),
         queue: [Song] = [],
         currentIndex: Int = 0,
+        trackScreenViewed: @escaping (Song) -> Void = { _ in },
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundleNoRouter {
-        let (sut, audioSpy, _, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
+        let (sut, audioSpy, _, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, trackScreenViewed: trackScreenViewed, source: source)
         return (sut, audioSpy)
     }
 }
