@@ -32,6 +32,7 @@ struct SearchSongsIntegrationTests {
     private func makeSUT() -> RemoteSongRepository {
         let baseURL = URL(string: "https://itunes.apple.com/search")!
         let lookupBaseURL = URL(string: "https://itunes.apple.com/lookup")!
-        return RemoteSongRepository(client: URLSessionHTTPClient(), baseURL: baseURL, lookupBaseURL: lookupBaseURL)
+        let logger = NoOpStubLogger()
+        return RemoteSongRepository(client: URLSessionHTTPClient(), baseURL: baseURL, lookupBaseURL: lookupBaseURL, logger: logger)
     }
 }
