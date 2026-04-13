@@ -141,6 +141,20 @@ struct SongsViewModelTests {
         #expect(sut.state.isLoaded)
     }
 
+    // MARK: - clearSearch
+
+    @Test func clearSearch_clearsSongsAndResetsToIdle() async {
+        let (sut, spy, _) = makeSUT()
+        spy.stub(result: Song.fixtures(count: 5))
+        sut.searchText = "Prince"
+        await sut.search()
+
+        sut.clearSearch()
+
+        #expect(sut.songs.isEmpty)
+        #expect(sut.state.isIdle)
+    }
+
     // MARK: - hasResults
 
     @Test func hasResults_returnsFalseWhenSongsAreEmpty() {

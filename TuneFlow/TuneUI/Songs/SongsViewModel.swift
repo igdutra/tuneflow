@@ -39,6 +39,11 @@ final class SongsViewModel {
         router.present(.moreOptions(song))
     }
 
+    func clearSearch() {
+        songs = []
+        state = .idle
+    }
+
     func search() async {
         guard !searchText.isEmpty else {
             songs = []

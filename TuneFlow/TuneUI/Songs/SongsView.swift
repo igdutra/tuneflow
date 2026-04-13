@@ -86,6 +86,8 @@ struct SongsView: View {
         .onChange(of: isSearchPresented) { _, isPresented in
             if isPresented {
                 showsCollapsedSearchButton = false
+            } else {
+                viewModel.clearSearch()
             }
         }
         .toolbar {
