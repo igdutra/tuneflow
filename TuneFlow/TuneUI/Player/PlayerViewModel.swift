@@ -97,18 +97,8 @@ final class PlayerViewModel {
     }
 
     func didTapForward() {
-        // TODO: shuffle-next should pick a random index within the current queue, not the full song list
-        // TODO: repeat and shuffle should be mutually exclusive
-        let nextIndex: Int
-        if isShuffleOn && queue.count > 1 {
-            var random: Int
-            repeat {
-                random = Int.random(in: 0..<queue.count)
-            } while random == currentIndex
-            nextIndex = random
-        } else {
-            nextIndex = currentIndex + 1
-        }
+        // TODO: Shuffle is deferred (see didTapShuffle). For now, always go sequential.
+        let nextIndex = currentIndex + 1
 
         guard nextIndex < queue.count else { return }
         router.pop()
@@ -117,13 +107,17 @@ final class PlayerViewModel {
     }
 
     func didTapRepeat() {
-        // TODO: repeat-next should replay the current song from the beginning
+        // TODO: Repeat functionality is deferred. Current issue: repeat state does not persist across
+        // song navigations because each PlayerViewModel is fresh. Fix requires moving repeat state to
+        // a persistent layer (service or router). See BUGFIX.md for full scope.
+        // For now, button toggles locally but has no effect on playback.
         isRepeatOn.toggle()
-        (audioService as? AVAudioPlayerService)?.isRepeatOn = isRepeatOn
     }
 
     func didTapShuffle() {
-        // TODO: shuffle state should be persisted across player pushes for consistent queue navigation
+        // TODO: Shuffle functionality is deferred. Current issue: shuffle state resets on each song
+        // navigation because each PlayerViewModel is fresh. Fix requires persistent state layer.
+        // For now, button toggles locally but has no effect on next navigation.
         isShuffleOn.toggle()
     }
 
