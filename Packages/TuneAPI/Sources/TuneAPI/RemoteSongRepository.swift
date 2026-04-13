@@ -5,11 +5,13 @@ public final class RemoteSongRepository: SongRepository {
     private let client: HTTPClient
     private let baseURL: URL
     private let lookupBaseURL: URL
+    private let logger: LogHandling
 
-    public init(client: HTTPClient, baseURL: URL, lookupBaseURL: URL) {
+    public init(client: HTTPClient, baseURL: URL, lookupBaseURL: URL, logger: LogHandling) {
         self.client = client
         self.baseURL = baseURL
         self.lookupBaseURL = lookupBaseURL
+        self.logger = logger
     }
 
     public func search(query: String, limit: Int, offset: Int) async throws -> [Song] {
@@ -26,8 +28,13 @@ public final class RemoteSongRepository: SongRepository {
             throw RemoteSongRepositoryError.invalidData
         }
 
-        let (data, response) = try await client.get(from: url)
-        return try RemoteSongMapper.map(data, response)
+        do {
+            let (data, response) = try await client.get(from: url)
+            return try RemoteSongMapper.map(data, response)
+        } catch {
+            logger.error("Search failed for query '\(query)': \(error)")
+            throw error
+        }
     }
 
     public func fetchAlbum(collectionId: Int) async throws -> Album {
@@ -42,7 +49,12 @@ public final class RemoteSongRepository: SongRepository {
             throw RemoteSongRepositoryError.invalidData
         }
 
-        let (data, response) = try await client.get(from: url)
-        return try RemoteAlbumMapper.map(data, response)
+        do {
+            let (data, response) = try await client.get(from: url)
+            return try RemoteAlbumMapper.map(data, response)
+        } catch {
+            logger.error("Fetch album failed for collectionId \(collectionId): \(error)")
+            throw error
+        }
     }
 }

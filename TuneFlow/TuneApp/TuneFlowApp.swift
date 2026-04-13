@@ -12,12 +12,18 @@ struct TuneFlowApp: App {
     private let audioService = AVAudioPlayerService()
     private let recentlyPlayedRepository: any RecentlyPlayedRepository
     private let eventTracker: EventTracker = InMemoryAnalyticsTracker()
+    private let logHandler: LogHandling = OSLogger()
 
     init() {
         AVPlayer.isObservationEnabled = true
         let baseURL = URL(string: "https://itunes.apple.com/search")!
         let lookupBaseURL = URL(string: "https://itunes.apple.com/lookup")!
-        songRepository = RemoteSongRepository(client: httpClient, baseURL: baseURL, lookupBaseURL: lookupBaseURL)
+        songRepository = RemoteSongRepository(
+            client: httpClient,
+            baseURL: baseURL,
+            lookupBaseURL: lookupBaseURL,
+            logger: logHandler
+        )
 
         let container = try! ModelContainer(for: StoredSong.self, StoredPlayHistory.self)
         let store = SwiftDataRecentlyPlayedStore(modelContainer: container)
