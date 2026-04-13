@@ -12,7 +12,7 @@ final class SongsViewModel {
     var searchText = ""
 
     @ObservationIgnored private var currentOffset = 0
-    @ObservationIgnored private let pageSize = 10
+    @ObservationIgnored private let pageSize = 25
     @ObservationIgnored private var hasReachedEnd = false
 
     var hasResults: Bool { !songs.isEmpty }
