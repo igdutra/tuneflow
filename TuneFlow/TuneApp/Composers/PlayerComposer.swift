@@ -8,6 +8,7 @@ enum PlayerComposer {
         queue: [Song],
         currentIndex: Int,
         audioService: any AudioPlayerService,
+        recentlyPlayedRepository: any RecentlyPlayedRepository,
         router: AppRouter
     ) -> some View {
         let viewModel = PlayerViewModel(
@@ -15,6 +16,7 @@ enum PlayerComposer {
             queue: queue,
             currentIndex: currentIndex,
             audioService: audioService,
+            recentlyPlayedRepository: recentlyPlayedRepository,
             router: router
         )
         return PlayerView(viewModel: viewModel)
