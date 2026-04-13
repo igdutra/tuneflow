@@ -29,7 +29,8 @@ This project is built with a spec-driven development workflow using AgentOS V3, 
 
 Run all TuneFlow app tests:
 ```bash
-xcodebuild test -scheme TuneFlow -destination 'platform=iOS Simulator,name=iPhone 17'
+ xcodebuild clean build test -scheme TuneFlow -destination 'platform=iOS Simulator,name=iPhone 17' -testPlan "TuneFlowTestPlan"
+  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 ```
 
 ### Package tests (no simulator needed)
