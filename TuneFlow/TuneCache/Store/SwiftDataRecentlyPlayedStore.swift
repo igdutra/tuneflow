@@ -29,12 +29,18 @@ final actor SwiftDataRecentlyPlayedStore: RecentlyPlayedStore {
         }
     }
 
-    func retrieveAll() async throws -> [StoredSong] {
-        let descriptor = FetchDescriptor<StoredSong>()
-        let all = try modelContext.fetch(descriptor)
-        return all.sorted { $0.lastPlayedAt > $1.lastPlayedAt }
+    // TODO: Analyse Swift6 Errors
+    func retrieveAll() throws -> [StoredSong] {
+        // We sort in the FetchDescriptor so the persistent store (SwiftData/Core Data + SQLite) does the work,
+        // which is more efficient and guarantees deterministic results instead of fetching unsorted data and sorting in memory.
+        // SwiftData fetches are not ordered by default unless you explicitly provide sort descriptors; Core Data's ordered support
+        // applies to ordered relationships (e.g. NSOrderedSet), not to general top-level fetch results like this one.
+        let descriptor = FetchDescriptor<StoredSong>(
+            sortBy: [SortDescriptor(\.lastPlayedAt, order: .reverse)]
+        )
+        return try modelContext.fetch(descriptor)
     }
-
+    
     // MARK: - Private
 
     private func fetchOrCreateHistory() throws -> StoredPlayHistory {
