@@ -7,6 +7,7 @@ import TuneDomain
 struct TuneFlowApp: App {
     private let httpClient = URLSessionHTTPClient()
     private let songRepository: any SongRepository
+    private let audioService = AVAudioPlayerService()
 
     init() {
         AVPlayer.isObservationEnabled = true
@@ -17,7 +18,7 @@ struct TuneFlowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(songRepository: songRepository)
+            RootView(songRepository: songRepository, audioService: audioService)
                 .preferredColorScheme(.dark)
         }
     }

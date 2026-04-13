@@ -7,9 +7,9 @@ enum PlayerComposer {
         song: Song,
         queue: [Song],
         currentIndex: Int,
+        audioService: any AudioPlayerService,
         router: AppRouter
     ) -> some View {
-        let audioService = AVAudioPlayerService()
         let viewModel = PlayerViewModel(
             song: song,
             queue: queue,
