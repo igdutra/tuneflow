@@ -1,5 +1,5 @@
 //
-//  TuneEventTracker.swift
+//  EventTracker.swift
 //  TuneDomain
 //
 //  Created by Ivo on 13/04/26.
@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol TuneEventTracker {
+public protocol EventTracker {
     func track(_ event: any TuneEvent)
 }
