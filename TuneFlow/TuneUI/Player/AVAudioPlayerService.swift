@@ -2,7 +2,7 @@ import AVFoundation
 import TuneDomain
 
 @MainActor
-final class AVAudioPlayerService: AudioPlayerService {
+class AVAudioPlayerService: AudioPlayerService {
 
     // MARK: - Public
 
@@ -133,9 +133,9 @@ final class AVAudioPlayerService: AudioPlayerService {
 
     // MARK: - Deinit
 
-    deinit {
-        if let token = timeObserverToken {
-            player?.removeTimeObserver(token)
-        }
+    nonisolated deinit {
+        // Time observer token is removed in stop() — this is a safety net only.
+        // Accessing MainActor-isolated state from deinit is not safe in Swift 6;
+        // rely on stop() being called before deallocation (onDisappear lifecycle).
     }
 }
