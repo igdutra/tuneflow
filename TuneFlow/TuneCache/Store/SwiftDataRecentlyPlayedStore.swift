@@ -8,8 +8,9 @@ final actor SwiftDataRecentlyPlayedStore: RecentlyPlayedStore {
     func insert(_ song: Song) async throws {
         let history = try fetchOrCreateHistory()
 
+        let songID = song.id
         let descriptor = FetchDescriptor<StoredSong>(
-            predicate: #Predicate { $0.id == song.id }
+            predicate: #Predicate<StoredSong> { $0.id == songID }
         )
         if let existing = try modelContext.fetch(descriptor).first {
             existing.lastPlayedAt = Date()
@@ -46,3 +47,4 @@ final actor SwiftDataRecentlyPlayedStore: RecentlyPlayedStore {
         return history
     }
 }
+

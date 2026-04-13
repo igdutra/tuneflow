@@ -9,7 +9,7 @@ struct SongsViewModelTests {
     // MARK: - Initial State
 
     @Test func init_startsWithIdleStateAndEmptySongs() {
-        let (sut, _) = makeSUT()
+        let (sut, _, _) = makeSUT()
 
         #expect(sut.state.isIdle)
         #expect(sut.songs.isEmpty)
@@ -19,7 +19,7 @@ struct SongsViewModelTests {
     // MARK: - Search Success
 
     @Test func search_onSuccess_populatesSongsAndTransitionsToLoaded() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 5))
         sut.searchText = "Prince"
 
@@ -30,7 +30,7 @@ struct SongsViewModelTests {
     }
 
     @Test func search_onSuccess_callsRepositoryWithCorrectParameters() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: [])
         sut.searchText = "Beatles"
 
@@ -45,7 +45,7 @@ struct SongsViewModelTests {
     // MARK: - Search Failure
 
     @Test func search_onFailure_transitionsToErrorAndKeepsSongsEmpty() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(error: anyError())
         sut.searchText = "Prince"
 
@@ -58,7 +58,7 @@ struct SongsViewModelTests {
     // MARK: - Empty Search Text
 
     @Test func search_withEmptyText_clearsSongsAndResetsToIdle() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 3))
         sut.searchText = "Prince"
         await sut.search()
@@ -74,7 +74,7 @@ struct SongsViewModelTests {
     // MARK: - New Search Replaces Results
 
     @Test func search_onNewSearch_replacesExistingResults() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 5))
         sut.searchText = "Prince"
         await sut.search()
@@ -88,7 +88,7 @@ struct SongsViewModelTests {
     }
 
     @Test func search_resetsOffsetToZeroOnNewSearch() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 10))
         sut.searchText = "Prince"
         await sut.search()
@@ -104,7 +104,7 @@ struct SongsViewModelTests {
     // MARK: - Pagination
 
     @Test func loadMore_appendsNextPage() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 10))
         sut.searchText = "Prince"
         await sut.search()
@@ -118,7 +118,7 @@ struct SongsViewModelTests {
     }
 
     @Test func loadMore_whenReachedEnd_doesNotCallRepository() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 7))  // fewer than pageSize(10) → end reached
         sut.searchText = "Prince"
         await sut.search()
@@ -129,7 +129,7 @@ struct SongsViewModelTests {
     }
 
     @Test func loadMore_onFailure_preservesExistingSongs() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 10))
         sut.searchText = "Prince"
         await sut.search()
@@ -144,13 +144,13 @@ struct SongsViewModelTests {
     // MARK: - hasResults
 
     @Test func hasResults_returnsFalseWhenSongsAreEmpty() {
-        let (sut, _) = makeSUT()
+        let (sut, _, _) = makeSUT()
 
         #expect(sut.hasResults == false)
     }
 
     @Test func hasResults_returnsTrueAfterSuccessfulSearch() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy, _) = makeSUT()
         spy.stub(result: Song.fixtures(count: 3))
         sut.searchText = "Prince"
 
@@ -158,18 +158,58 @@ struct SongsViewModelTests {
 
         #expect(sut.hasResults == true)
     }
+
+    // MARK: - loadRecentlyPlayed
+
+    @Test func loadRecentlyPlayed_onSuccess_populatesRecentSongs() async {
+        let (sut, _, repoSpy) = makeSUT()
+        repoSpy.stub(result: Song.fixtures(count: 3))
+
+        await sut.loadRecentlyPlayed()
+
+        #expect(sut.recentSongs.count == 3)
+    }
+
+    @Test func loadRecentlyPlayed_onFailure_setsRecentSongsToEmpty() async {
+        let (sut, _, repoSpy) = makeSUT()
+        repoSpy.stub(error: anyError())
+
+        await sut.loadRecentlyPlayed()
+
+        #expect(sut.recentSongs.isEmpty)
+    }
+
+    @Test func hasRecentSongs_returnsFalseWhenEmpty() {
+        let (sut, _, _) = makeSUT()
+
+        #expect(sut.hasRecentSongs == false)
+    }
+
+    @Test func hasRecentSongs_returnsTrueAfterLoad() async {
+        let (sut, _, repoSpy) = makeSUT()
+        repoSpy.stub(result: Song.fixtures(count: 2))
+
+        await sut.loadRecentlyPlayed()
+
+        #expect(sut.hasRecentSongs == true)
+    }
 }
 
 // MARK: - Helpers
 
 private extension SongsViewModelTests {
-    typealias SUTBundle = (sut: SongsViewModel, spy: SongRepositorySpy)
+    typealias SUTBundle = (sut: SongsViewModel, spy: SongRepositorySpy, repoSpy: RecentlyPlayedRepositorySpy)
 
     func makeSUT(source: SourceLocation = #_sourceLocation) -> SUTBundle {
         let spy = SongRepositorySpy()
-        let sut = SongsViewModel(repository: spy, router: AppRouter())
+        let repoSpy = RecentlyPlayedRepositorySpy()
+        let sut = SongsViewModel(
+            repository: spy,
+            recentlyPlayedRepository: repoSpy,
+            router: AppRouter()
+        )
         _ = source
-        return (sut, spy)
+        return (sut, spy, repoSpy)
     }
 
     func anyError() -> Error {

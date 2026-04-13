@@ -5,10 +5,12 @@ import TuneDomain
 @Observable
 final class SongsViewModel {
     private let repository: SongRepository
+    private let recentlyPlayedRepository: any RecentlyPlayedRepository
     private let router: AppRouter
 
     private(set) var state: ViewState = .idle
     private(set) var songs: [Song] = []
+    private(set) var recentSongs: [Song] = []
     var searchText = ""
 
     @ObservationIgnored private var currentOffset = 0
@@ -16,9 +18,15 @@ final class SongsViewModel {
     @ObservationIgnored private var hasReachedEnd = false
 
     var hasResults: Bool { !songs.isEmpty }
+    var hasRecentSongs: Bool { !recentSongs.isEmpty }
 
-    init(repository: SongRepository, router: AppRouter) {
+    init(
+        repository: SongRepository,
+        recentlyPlayedRepository: any RecentlyPlayedRepository,
+        router: AppRouter
+    ) {
         self.repository = repository
+        self.recentlyPlayedRepository = recentlyPlayedRepository
         self.router = router
     }
 
@@ -69,6 +77,14 @@ final class SongsViewModel {
             hasReachedEnd = result.count < pageSize
         } catch {
             // Pagination failure preserves the existing list — silently ignored for now
+        }
+    }
+
+    func loadRecentlyPlayed() async {
+        do {
+            recentSongs = try await recentlyPlayedRepository.loadRecent(limit: 10)
+        } catch {
+            recentSongs = []
         }
     }
 }
