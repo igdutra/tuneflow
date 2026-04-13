@@ -3,6 +3,8 @@
 swift:
   module-composition:
     description: TuneFlow layer names (TuneUI/Domain/TuneCache/TuneAPI), dependency rules, TuneFlowApp as composition root, protocol boundary sketches, DTO strategy, mappers, and feature composers
+  swiftdata-persistence:
+    description: "@Model definitions, @ModelActor repositories, mapper pattern for domain/storage boundary, cascade vs non-cascade relationships, sortIndex for ordering, testing with in-memory containers"
   swiftui:
     description: "@MainActor @Observable view models, ViewState pattern, content+viewData split, state overlay rendering, method references, property wrappers, and modern API defaults"
   audio-player:
