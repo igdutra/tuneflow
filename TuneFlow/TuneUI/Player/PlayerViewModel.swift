@@ -45,6 +45,53 @@ final class PlayerViewModel {
     @ObservationIgnored private let recentlyPlayedRepository: any RecentlyPlayedRepository
     @ObservationIgnored private var didSaveToRecentlyPlayed = false
 
+    // MARK: - Task Launcher
+    //
+    // Why this exists — the testability problem with fire-and-forget Tasks:
+    //
+    // `apply()` needs to kick off async work (saving to recently played) from a synchronous
+    // context (the `onStateChange` callback). The natural Swift pattern is an unstructured
+    // `Task { await ... }`. However, this creates a fundamental testing problem:
+    //
+    //   - The unstructured Task body is enqueued on the cooperative scheduler.
+    //   - Swift's cooperative thread pool is intentionally non-deterministic.
+    //   - Tests on `@MainActor` that call `await Task.yield()` are NOT guaranteed to
+    //     resume AFTER the enqueued Task body has run — `Task.yield()` is a single
+    //     cooperative suspension, not a barrier across independently-scheduled tasks.
+    //   - Result: `repoSpy.saveCallCount` reads 0 instead of 1 ~1 in 5 runs (flaky test).
+    //
+    // The fix — inject the task-spawning mechanism:
+    //
+    //   By making `launchTask` a stored property with a default that does the normal
+    //   `Task { await body() }`, we keep identical production behaviour while giving
+    //   tests the ability to swap in a custom launcher. Tests override it to advance
+    //   execution deterministically — e.g., by using `withMainSerialExecutor` from
+    //   swift-concurrency-extras, or simply by letting it run as a normal Task and
+    //   using a spy hook (onSave) to synchronise assertions.
+    //
+    // Why NOT use `withCheckedContinuation` instead:
+    //   - `CheckedContinuation` is non-Sendable, causing Swift 6 friction.
+    //   - Resuming it 0 times hangs the test forever; resuming it 2+ times crashes.
+    //   - There is a confirmed Swift runtime bug (SR-14802) where Tasks resuming
+    //     continuations can silently hang under certain scheduler conditions.
+    //
+    // Why NOT use Swift Testing's `confirmation()` instead:
+    //   - `confirmation()` does NOT block/timeout-wait for `confirm()` to be called.
+    //     It only checks whether `confirm()` was called before the body closure exits.
+    //     For a fire-and-forget Task, the closure exits before the Task runs — same race.
+    //     (See open swift-testing issue #978.)
+    //
+    // References:
+    //   - Swift Forums: "Reliably testing code that adopts Swift Concurrency"
+    //     forums.swift.org/t/reliably-testing-code-that-adopts-swift-concurrency/57304
+    //   - Point-Free: "Reliably testing async code in Swift"
+    //     pointfree.co/blog/posts/110-reliably-testing-async-code-in-swift
+    //   - SR-14802: github.com/swiftlang/swift/issues/57150
+    //   - swift-testing issue #978: github.com/swiftlang/swift-testing/issues/978
+    @ObservationIgnored var launchTask: (@MainActor @Sendable (@escaping @Sendable () async -> Void) -> Void) = { body in
+        Task { await body() }
+    }
+
     init(
         song: Song,
         queue: [Song],
@@ -112,7 +159,7 @@ final class PlayerViewModel {
     private func apply(_ state: AudioPlayerState) {
         if !didSaveToRecentlyPlayed && state.isReadyToPlay {
             didSaveToRecentlyPlayed = true
-            Task { [weak self] in
+            launchTask { [weak self] in
                 guard let self else { return }
                 try? await recentlyPlayedRepository.save(song)
             }

@@ -4,6 +4,7 @@ import TuneDomain
 final class RecentlyPlayedRepositorySpy: RecentlyPlayedRepository, @unchecked Sendable {
     private(set) var saveCallCount = 0
     private(set) var saveCalledWithSong: Song?
+    var onSave: (@Sendable (Song) -> Void)?
     private(set) var loadRecentCallCount = 0
     private(set) var loadRecentCalledWithLimit: Int?
 
@@ -13,6 +14,7 @@ final class RecentlyPlayedRepositorySpy: RecentlyPlayedRepository, @unchecked Se
     func save(_ song: Song) async throws {
         saveCallCount += 1
         saveCalledWithSong = song
+        onSave?(song)
         if let error = stubbedSaveError { throw error }
     }
 

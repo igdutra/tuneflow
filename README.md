@@ -25,6 +25,15 @@ This project is built with a spec-driven development workflow using AgentOS V3, 
 
 ## Running Tests
 
+### App tests (requires simulator)
+
+Run all TuneFlow app tests:
+```bash
+xcodebuild test -scheme TuneFlow -destination 'platform=iOS Simulator,name=iPhone 17'
+```
+
+### Package tests (no simulator needed)
+
 Tests live in `Packages/TuneAPI`. There are two test targets:
 
 | Target | What it tests |
