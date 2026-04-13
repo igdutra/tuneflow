@@ -1,6 +1,12 @@
 import TuneDomain
 import SwiftUI
 
+/// iOS 26 Observable pattern with protocol-wrapped service:
+/// Since `AudioPlayerService` is a protocol (not a concrete `AVPlayer`), SwiftUI cannot observe through
+/// the protocol boundary directly. Instead, we hold stored observable state properties that the service
+/// updates via callback. This is correct iOS 26 design — if we exposed `AVPlayer` directly in the
+/// ViewModel, we could observe `player.timeControlStatus` live with no callback needed. But with a
+/// protocol service layer, the callback bridge is the proper pattern.
 @MainActor
 @Observable
 final class PlayerViewModel {
