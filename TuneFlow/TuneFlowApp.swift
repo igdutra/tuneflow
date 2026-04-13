@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import TuneAPI
 import TuneDomain
@@ -8,6 +9,7 @@ struct TuneFlowApp: App {
     private let songRepository: any SongRepository
 
     init() {
+        AVPlayer.isObservationEnabled = true
         let baseURL = URL(string: "https://itunes.apple.com/search")!
         let lookupBaseURL = URL(string: "https://itunes.apple.com/lookup")!
         songRepository = RemoteSongRepository(client: httpClient, baseURL: baseURL, lookupBaseURL: lookupBaseURL)
