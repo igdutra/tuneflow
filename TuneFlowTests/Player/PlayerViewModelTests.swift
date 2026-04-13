@@ -147,25 +147,39 @@ struct PlayerViewModelTests {
 
     // MARK: - Recently Played
 
-    @Test("onAppear calls save on recently played repository")
-    func onAppear_callsSaveOnRecentlyPlayedRepository() async {
+    @Test("audio becoming ready to play saves song to recently played repository")
+    func audioReadyToPlay_callsSaveOnRecentlyPlayedRepository() async {
         let song = Song.fixture()
-        let (sut, _, _, repoSpy) = makeSUT(song: song)
-
+        let (sut, audioSpy, _, repoSpy) = makeSUT(song: song)
         sut.onAppear()
+
+        audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 0, duration: 30, progress: 0))
         await Task.yield()
 
         #expect(repoSpy.saveCallCount == 1)
         #expect(repoSpy.saveCalledWithSong == song)
     }
 
-    @Test("onAppear save failure does not crash and playback continues")
-    func onAppear_saveFailure_doesNotCrashAndPlaybackContinues() async {
+    @Test("save is only triggered once even if isReadyToPlay fires multiple times")
+    func audioReadyToPlay_onlyTriggersOneSave() async {
+        let (sut, audioSpy, _, repoSpy) = makeSUT()
+        sut.onAppear()
+
+        audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 0, duration: 30, progress: 0))
+        audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 5, duration: 30, progress: 0.16))
+        await Task.yield()
+
+        #expect(repoSpy.saveCallCount == 1)
+    }
+
+    @Test("save failure does not crash and playback continues")
+    func saveFailure_doesNotCrashAndPlaybackContinues() async {
         let previewURL = URL(string: "https://preview.com/song.m4a")!
         let (sut, audioSpy, _, repoSpy) = makeSUT(song: .fixture(previewURL: previewURL))
         repoSpy.stubSave(error: NSError(domain: "test", code: 0))
-
         sut.onAppear()
+
+        audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 0, duration: 30, progress: 0))
         await Task.yield()
 
         #expect(audioSpy.playCallCount == 1)

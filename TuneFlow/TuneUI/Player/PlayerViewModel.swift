@@ -43,6 +43,7 @@ final class PlayerViewModel {
     @ObservationIgnored private let queue: [Song]
     @ObservationIgnored private let currentIndex: Int
     @ObservationIgnored private let recentlyPlayedRepository: any RecentlyPlayedRepository
+    @ObservationIgnored private var didSaveToRecentlyPlayed = false
 
     init(
         song: Song,
@@ -66,10 +67,6 @@ final class PlayerViewModel {
         audioService.onStateChange = { [weak self] state in
             guard let self else { return }
             self.apply(state)
-        }
-        Task { [weak self] in
-            guard let self else { return }
-            try? await recentlyPlayedRepository.save(song)
         }
         guard let url = song.previewURL else { return }
         audioService.play(url: url)
@@ -113,6 +110,13 @@ final class PlayerViewModel {
     // MARK: - State Application
 
     private func apply(_ state: AudioPlayerState) {
+        if !didSaveToRecentlyPlayed && state.isReadyToPlay {
+            didSaveToRecentlyPlayed = true
+            Task { [weak self] in
+                guard let self else { return }
+                try? await recentlyPlayedRepository.save(song)
+            }
+        }
         isPlaying = state.isPlaying
         isReadyToPlay = state.isReadyToPlay
         currentTime = state.currentTime
