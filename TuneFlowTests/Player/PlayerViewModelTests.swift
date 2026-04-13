@@ -145,6 +145,49 @@ struct PlayerViewModelTests {
     }
 
 
+    // MARK: - Recently Played
+
+    @Test("audio becoming ready to play saves song to recently played repository")
+    func audioReadyToPlay_callsSaveOnRecentlyPlayedRepository() async {
+        let song = Song.fixture()
+        let (sut, audioSpy, _, repoSpy) = makeSUT(song: song)
+        sut.onAppear()
+        // Override launchTask so the body runs immediately and synchronously within
+        // the same async context. This eliminates the Task scheduling race described
+        // in PlayerViewModel — see the launchTask documentation for full context.
+        await withTaskLauncher(sut) {
+            audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 0, duration: 30, progress: 0))
+        }
+
+        #expect(repoSpy.saveCallCount == 1)
+        #expect(repoSpy.saveCalledWithSong == song)
+    }
+
+    @Test("save is only triggered once even if isReadyToPlay fires multiple times")
+    func audioReadyToPlay_onlyTriggersOneSave() async {
+        let (sut, audioSpy, _, repoSpy) = makeSUT()
+        sut.onAppear()
+        await withTaskLauncher(sut) {
+            audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 0, duration: 30, progress: 0))
+            audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 5, duration: 30, progress: 0.16))
+        }
+
+        #expect(repoSpy.saveCallCount == 1)
+    }
+
+    @Test("save failure does not crash and playback continues")
+    func saveFailure_doesNotCrashAndPlaybackContinues() async {
+        let previewURL = URL(string: "https://preview.com/song.m4a")!
+        let (sut, audioSpy, _, repoSpy) = makeSUT(song: .fixture(previewURL: previewURL))
+        repoSpy.stubSave(error: NSError(domain: "test", code: 0))
+        sut.onAppear()
+        await withTaskLauncher(sut) {
+            audioSpy.emit(AudioPlayerState(isPlaying: true, isReadyToPlay: true, currentTime: 0, duration: 30, progress: 0))
+        }
+
+        #expect(audioSpy.playCallCount == 1)
+    }
+
     // MARK: - More Options
 
     @Test("didTapMoreOptions presents moreOptions sheet")
@@ -193,8 +236,58 @@ struct PlayerViewModelTests {
 // MARK: - Helpers
 
 private extension PlayerViewModelTests {
+    /// Overrides `sut.launchTask` for the duration of `body`, then awaits all tasks
+    /// launched during that window before returning.
+    ///
+    /// Why this helper exists:
+    ///
+    /// `PlayerViewModel.apply()` uses `launchTask` (an injected closure) to fire async
+    /// work off the `@MainActor`. In production the default is `Task { await body() }`,
+    /// which is an unstructured, fire-and-forget task. Tests that assert on the *result*
+    /// of that work face a scheduling race: `Task.yield()` is not a barrier — the Swift
+    /// cooperative scheduler makes no guarantee that a newly-enqueued Task body runs
+    /// before the yielded test task resumes. This caused ~1-in-5 failures where
+    /// `saveCallCount` was still 0 when the assertion fired.
+    ///
+    /// The fix: override `launchTask` so each body is tracked in a local array of Task
+    /// handles, then `await` all of them after `body()` returns. This makes the test
+    /// wait for exactly the tasks it triggered — deterministic, no sleeps, no polling.
+    @MainActor
+    func withTaskLauncher(_ sut: PlayerViewModel, body: @MainActor () -> Void) async {
+        var tasks: [Task<Void, Never>] = []
+        sut.launchTask = { work in
+            let t = Task { await work() }
+            tasks.append(t)
+        }
+        body()
+        for task in tasks { await task.value }
+        sut.launchTask = { body in Task { await body() } }  // restore default
+    }
+
     typealias SUTBundle = (sut: PlayerViewModel, spy: AudioPlayerServiceSpy, router: AppRouter)
     typealias SUTBundleNoRouter = (sut: PlayerViewModel, spy: AudioPlayerServiceSpy)
+    typealias SUTBundleFull = (sut: PlayerViewModel, audioSpy: AudioPlayerServiceSpy, router: AppRouter, repoSpy: RecentlyPlayedRepositorySpy)
+
+    func makeSUT(
+        song: Song = .fixture(),
+        queue: [Song] = [],
+        currentIndex: Int = 0,
+        source: SourceLocation = #_sourceLocation
+    ) -> SUTBundleFull {
+        let audioSpy = AudioPlayerServiceSpy()
+        let repoSpy = RecentlyPlayedRepositorySpy()
+        let router = AppRouter()
+        let sut = PlayerViewModel(
+            song: song,
+            queue: queue,
+            currentIndex: currentIndex,
+            audioService: audioSpy,
+            recentlyPlayedRepository: repoSpy,
+            router: router
+        )
+        _ = source
+        return (sut, audioSpy, router, repoSpy)
+    }
 
     func makeSUT(
         song: Song = .fixture(),
@@ -202,17 +295,8 @@ private extension PlayerViewModelTests {
         currentIndex: Int = 0,
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundle {
-        let spy = AudioPlayerServiceSpy()
-        let router = AppRouter()
-        let sut = PlayerViewModel(
-            song: song,
-            queue: queue,
-            currentIndex: currentIndex,
-            audioService: spy,
-            router: router
-        )
-        _ = source
-        return (sut, spy, router)
+        let (sut, audioSpy, router, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
+        return (sut, audioSpy, router)
     }
 
     func makeSUT(
@@ -221,7 +305,7 @@ private extension PlayerViewModelTests {
         currentIndex: Int = 0,
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundleNoRouter {
-        let (sut, spy, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
-        return (sut, spy)
+        let (sut, audioSpy, _, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
+        return (sut, audioSpy)
     }
 }

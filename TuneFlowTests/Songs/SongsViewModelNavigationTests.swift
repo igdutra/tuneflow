@@ -40,8 +40,9 @@ private extension SongsViewModelNavigationTests {
 
     func makeSUT(source: SourceLocation = #_sourceLocation) -> SUTBundle {
         let spy = SongRepositorySpy()
+        let recentlyPlayedSpy = RecentlyPlayedRepositorySpy()
         let router = AppRouter()
-        let sut = SongsViewModel(repository: spy, router: router)
+        let sut = SongsViewModel(repository: spy, recentlyPlayedRepository: recentlyPlayedSpy, router: router)
         _ = source
         return (sut, spy, router)
     }

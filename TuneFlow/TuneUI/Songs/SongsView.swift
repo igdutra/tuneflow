@@ -12,6 +12,26 @@ struct SongsView: View {
 
     var body: some View {
         List {
+            if viewModel.hasRecentSongs && viewModel.searchText.isEmpty && !isSearchPresented {
+                Section("Recently Played") {
+                    ForEach(viewModel.recentSongs) { song in
+                        SongRowView(
+                            artworkURL: song.artworkURL,
+                            title: song.trackName,
+                            artist: song.artistName,
+                            onMoreTapped: { viewModel.showMoreOptions(for: song) }
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            viewModel.selectSong(song)
+                        }
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            }
+
             ForEach(viewModel.songs) { song in
                 SongRowView(
                     artworkURL: song.artworkURL,
@@ -32,6 +52,9 @@ struct SongsView: View {
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
             .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        }
+        .onAppear {
+            Task { await viewModel.loadRecentlyPlayed() }
         }
         .onScrollGeometryChange(for: Bool.self) { geometry in
             geometry.contentOffset.y > 30
@@ -63,6 +86,8 @@ struct SongsView: View {
         .onChange(of: isSearchPresented) { _, isPresented in
             if isPresented {
                 showsCollapsedSearchButton = false
+            } else {
+                viewModel.clearSearch()
             }
         }
         .toolbar {
