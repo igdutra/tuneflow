@@ -4,7 +4,7 @@
 
 ## Overview
 
-Implement the Player screen that opens when a song is tapped. The screen streams the song's iTunes 30-second preview URL using `AVPlayer`, displays large album artwork, track title, artist name, a live progress bar with timestamps, and transport controls (previous / play-pause / next). The ViewModel owns the full `AVPlayer` lifecycle via an `AudioPlayerService` protocol, keeping the view thin and the service fully testable without real audio hardware.
+Implement the Player screen that opens when a song is tapped. The screen streams the song's iTunes 30-second preview URL using `AVPlayer`, displays large album artwork, track title, artist name, a live progress bar with timestamps, and transport controls (previous / play-pause / next / repeat). The ViewModel owns the `AVPlayer` instance and exposes it directly to the view — iOS 26's Observable AVFoundation APIs mean SwiftUI can observe `player.timeControlStatus` and other state properties without KVO or Combine. Only `addPeriodicTimeObserver` is still required for continuous time tracking.
 
 **Standards applied:** swift/audio-player, swift/module-composition, swift/swiftui, swift/testing
 
@@ -36,17 +36,17 @@ Given the 30-second preview is playing
 When it reaches the end
 Then playback stops, the progress bar is full, and the play button returns to the play icon (ready to restart)
 
-### S5: Previous / Next navigation
+### S5: Next song navigation
 
 Given the user arrived at the Player from a list of songs (queue)
-When they tap the previous or next button
-Then the app navigates to the previous or next song in the queue
+When they tap the next button
+Then the app navigates to the next song in the queue
 
-### S6: Backward skip restarts current song when deep into playback
+### S6: Backward skip restarts or goes to previous
 
-Given the user is more than 3 seconds into a song
+Given the user is on the Player screen
 When they tap the previous button
-Then the song restarts from the beginning instead of navigating to the previous song
+Then: if more than 3 seconds into the song — the song restarts from the beginning; if 3 seconds or less — the app navigates to the previous song in the queue (or restarts if at the start)
 
 ### S7: Player screen dismissed / navigated away
 
@@ -58,7 +58,7 @@ Then playback stops cleanly — no audio continues in the background
 
 Given the user is on the Player screen
 When they tap the ellipsis (…) button
-Then the More Options bottom sheet appears for the current song
+Then the MoreOptionsView.swift bottom sheet appears for the current song
 
 ### S9: Song with no preview URL
 
@@ -66,9 +66,25 @@ Given the user taps a song that has no preview URL
 When the Player screen appears
 Then the screen renders correctly (artwork, title, artist) with playback controls disabled or inert — no crash
 
+### S10: Repeat mode
+
+Given the user is on the Player screen
+When they tap the repeat button
+Then repeat mode toggles on — when the 30-second preview ends it automatically restarts instead of stopping — tapping again turns repeat off
+
+### S11: Shuffle
+
+Given the user is on the Player screen and has a queue of songs
+When they tap the shuffle button (or it is already on from the Songs screen)
+Then tapping next navigates to a random song from the queue instead of the sequential next song; tapping again disables shuffle and resumes sequential order
+
 ---
 
 ## Acceptance Criteria
+
+### iOS 26 Observable AVFoundation Setup
+- [ ] `AVPlayer.isObservationEnabled = true` is set in `TuneFlowApp` before any player is created
+- [ ] No KVO `.publisher(for: \.)` or Combine subscriptions used for player state observation — use direct property access in SwiftUI
 
 ### Domain / Protocol
 - [ ] `AudioPlayerService` protocol added to `TuneDomain/Services/` with: `play(url:)`, `pause()`, `resume()`, `stop()`, `seek(to:)`, `var isPlaying: Bool`, `var currentTime: TimeInterval`, `var duration: TimeInterval`, `var progress: Double`
@@ -76,39 +92,46 @@ Then the screen renders correctly (artwork, title, artist) with playback control
 - [ ] No AVFoundation import in `TuneDomain`
 
 ### AVAudioPlayerService (concrete implementation)
-- [ ] `AVAudioPlayerService` lives in `TuneUI/` (not TuneDomain — it is infrastructure)
+- [ ] `AVAudioPlayerService` lives in `TuneUI/Player/` (infrastructure, not TuneDomain)
+- [ ] Exposes `var player: AVPlayer?` — view observes this directly via iOS 26 Observable APIs
+- [ ] Player is created lazily in `play(url:)`, not in init
 - [ ] Configures `AVAudioSession` with `.playback` category before first play
-- [ ] Creates `AVPlayer` from URL; does NOT download before playing
-- [ ] Uses `addPeriodicTimeObserver` with 0.25s interval, `preferredTimescale: 600` for progress updates
+- [ ] Uses `addPeriodicTimeObserver` with 0.25s interval, `preferredTimescale: 600` for `currentTime` and `progress` (still required — Observation doesn't cover continuous time)
 - [ ] Guards `duration.isFinite && duration > 0` before updating progress
-- [ ] Observes `AVPlayerItemDidPlayToEndTime` via `NotificationCenter` publisher to detect end of playback
-- [ ] Removes time observer token before releasing player (in `stop()` AND `deinit` safety net)
-- [ ] Cancels all Combine subscriptions in `stop()`
-- [ ] `stop()` is idempotent — safe to call multiple times
-- [ ] Artwork URL upgraded from 100×100 → 600×600 by replacing the size substring (in ViewModel, not service)
+- [ ] Observes `AVPlayerItemDidPlayToEndTime` — when fired: if repeat on → `seek(to: 0)` + `play()`; otherwise → stop
+- [ ] Removes time observer token in `stop()` AND `deinit` (safety net)
+- [ ] `stop()` is idempotent
 
 ### PlayerViewModel
 - [ ] `PlayerViewModel` is `@MainActor @Observable final class`
-- [ ] Receives `Song`, `queue: [Song]`, `currentIndex: Int`, `audioPlayer: AudioPlayerService`, `router: AppRouter` via init
-- [ ] Never imports `AVFoundation`
-- [ ] Exposes read-only observable: `isPlaying`, `progress`, `currentTime`, `duration`
+- [ ] Receives `Song`, `queue: [Song]`, `currentIndex: Int`, `audioService: AVAudioPlayerService`, `router: AppRouter` via init
+- [ ] Exposes `audioService` (or its `player`) to the view for direct Observable observation of `timeControlStatus`
+- [ ] Exposes `currentTime: TimeInterval` and `progress: Double` (driven by `addPeriodicTimeObserver` via service)
+- [ ] Exposes `duration: TimeInterval`
 - [ ] Exposes computed: `currentTimeFormatted`, `durationFormatted` (format: `M:SS`)
-- [ ] Exposes `artworkURL: URL?` — replaces `100x100` with `600x600` in the artwork URL string
-- [ ] `onAppear()` — calls `audioPlayer.play(url:)` with `song.previewURL` (guard nil safely)
-- [ ] `onDisappear()` — calls `audioPlayer.stop()`
-- [ ] `didTapPlayPause()` — toggles `pause()` / `resume()` based on `isPlaying`
-- [ ] `didTapBackward()` — seeks to zero if `currentTime > 3`; otherwise `router.pop()` then `router.push(.player(queue[currentIndex - 1]))` if `prevIndex >= 0`, else seeks to zero
-- [ ] `didTapForward()` — `router.pop()` then `router.push(.player(queue[nextIndex]))` if `nextIndex < queue.count`
+- [ ] Exposes `artworkURL: URL?` — replaces `100x100` with `600x600` in artwork URL string
+- [ ] Exposes `isRepeatOn: Bool` — toggled by `didTapRepeat()`
+- [ ] Exposes `isShuffleOn: Bool` — toggled by `didTapShuffle()`
+- [ ] `onAppear()` — calls `audioService.play(url:)` with `song.previewURL`; guards nil safely
+- [ ] `onDisappear()` — calls `audioService.stop()`
+- [ ] `didTapPlayPause()` — reads `audioService.player?.timeControlStatus` to determine state; calls `pause()` or `resume()`
+- [ ] `didTapBackward()` — if `currentTime > 3`: seek to zero; else if `prevIndex >= 0`: pop + push previous; else seek to zero
+- [ ] `didTapForward()` — if `isShuffleOn`: pick random index ≠ `currentIndex`; else next sequential; pop + push new song
+- [ ] `didTapRepeat()` — toggles `isRepeatOn`; passes state to service so end-of-playback handler knows what to do
+- [ ] `didTapShuffle()` — toggles `isShuffleOn`
 - [ ] `didTapMoreOptions()` — `router.present(.moreOptions(song))`
-- [ ] `@ObservationIgnored` on `router`, `audioPlayer`, `queue`, `currentIndex` (non-UI internals)
+- [ ] `@ObservationIgnored` on `router`, `audioService`, `queue`, `currentIndex`
 
 ### PlayerView
 - [ ] `PlayerView` uses `@Bindable var viewModel: PlayerViewModel`
-- [ ] Matches mockup: pure `#000000` background, centered 280pt square album artwork (cornerRadius 16pt), track title (32pt Bold #FFFFFF), artist (16pt Regular #FFFFFF @ 70%), repeat icon placeholder (trailing)
-- [ ] Progress bar: track `#3A3A3C`, fill `#FFFFFF`, thumb `#FFFFFF` 12pt circle; elapsed label left, remaining label right (13pt #FFFFFF @ 60%)
-- [ ] Transport controls: backward (28pt), play/pause (56pt circle with glass treatment), forward (28pt)
-- [ ] Play button: `#3A3A3C` + `.ultraThinMaterial` blur overlay, 1pt `rgba(255,255,255,0.10)` border — matches DESIGN.md glass spec
-- [ ] Nav bar: compact centered album title (17pt Semibold #FFFFFF), back button (circular 44pt #1C1C1E glass), ellipsis button right
+- [ ] `isPlaying` derived directly from `viewModel.audioService.player?.timeControlStatus == .playing` — no stored bool
+- [ ] Play button disabled when `player?.currentItem?.status != .readyToPlay`
+- [ ] Matches mockup: pure `#000000` background, centered 280pt square album artwork (cornerRadius 16pt), track title (32pt Bold #FFFFFF), artist (16pt Regular #FFFFFF @ 70%)
+- [ ] Repeat and shuffle buttons visible in song info row; tinted white when active, gray when inactive
+- [ ] Progress bar: track `#3A3A3C`, fill `#FFFFFF`, thumb `#FFFFFF` 12pt circle; elapsed left, remaining right (13pt #FFFFFF @ 60%)
+- [ ] Transport controls: backward (28pt), play/pause (56pt circle glass), forward (28pt)
+- [ ] Play button: `#3A3A3C` + `.ultraThinMaterial`, 1pt `rgba(255,255,255,0.10)` border
+- [ ] Nav bar: compact centered album/collection title (17pt Semibold #FFFFFF), ellipsis button right
 - [ ] `.toolbarBackground(.hidden)`, `.toolbarColorScheme(.dark)`
 - [ ] `Button` (not `onTapGesture`) for all interactive elements
 - [ ] `.onAppear` → `viewModel.onAppear()`, `.onDisappear` → `viewModel.onDisappear()`
@@ -121,24 +144,26 @@ Then the screen renders correctly (artwork, title, artist) with playback control
 - [ ] `RootView` replaces the `Text("Player — ...")` placeholder with `PlayerComposer.compose(...)`
 
 ### Navigation wiring
-- [ ] `RootView` passes `queue` and `currentIndex` when composing the Player — `SongsViewModel` must supply these
-- [ ] `SongsViewModel.songTapped(_:)` pushes `.player(song)` with queue = current results and index = tapped index
-- [ ] `AppRoute.player` already exists with associated `Song` — no change needed to the enum
+- [ ] `SongsViewModel.songTapped(_:)` pushes `.player(song, queue: songs, index: i)` — or equivalent — so the player knows its queue position
+- [ ] `AppRoute.player` carries `Song`, `queue: [Song]`, `currentIndex: Int`
 
 ### Testing — `TuneFlowTests/Player/`
 - [ ] `PlayerViewModelTests` is `@MainActor struct`
-- [ ] Uses `AudioPlayerServiceSpy` (new helper) — never `AVPlayer` or `AVAudioPlayerService`
+- [ ] Uses `AudioPlayerServiceSpy` — never `AVPlayer` or `AVAudioPlayerService`
 - [ ] `makeSUT()` returns `(sut: PlayerViewModel, spy: AudioPlayerServiceSpy)`
 - [ ] `onAppear_callsPlay_withSongPreviewURL`
 - [ ] `onAppear_whenNoPreviewURL_doesNotCallPlay`
 - [ ] `onDisappear_callsStop`
 - [ ] `didTapPlayPause_whenPlaying_callsPause`
 - [ ] `didTapPlayPause_whenPaused_callsResume`
-- [ ] `didTapForward_whenNextExists_popsAndPushesNextSong`
-- [ ] `didTapForward_whenAtEnd_doesNothing`
+- [ ] `didTapForward_sequentialMode_popsAndPushesNextSong`
+- [ ] `didTapForward_atEndOfQueue_doesNothing`
+- [ ] `didTapForward_shuffleOn_pushesRandomSong`
 - [ ] `didTapBackward_whenBeyondThreshold_seeksToZero`
 - [ ] `didTapBackward_whenWithinThreshold_andPrevExists_popsAndPushesPrevSong`
 - [ ] `didTapBackward_whenAtStart_seeksToZero`
+- [ ] `didTapRepeat_togglesRepeatState`
+- [ ] `didTapShuffle_togglesShuffleState`
 - [ ] `didTapMoreOptions_presentsMoreOptionsSheet`
 - [ ] `currentTimeFormatted_returnsCorrectString` (e.g. 90s → "1:30")
 - [ ] `durationFormatted_returnsCorrectString`
@@ -148,8 +173,7 @@ Then the screen renders correctly (artwork, title, artist) with playback control
 - No scrubbing / interactive seek via drag on progress bar (display only)
 - No SwiftData persistence for recently played (future track)
 - No audio interruption handling (phone calls, alarms)
-- No iOS 26 Observable AVPlayer APIs — use KVO/Combine, iOS 17+ compatible
-- No shuffle / repeat functionality (button is a visual placeholder only)
+- No `AVQueuePlayer` — navigation between songs uses the router (pop + push)
 
 ---
 
@@ -161,21 +185,21 @@ Create `agent-os/specs/2026-04-12-1200-player-screen/` with plan.md, shape.md, s
 
 -> Commit immediately after completing this task, following the commit rule.
 
-### Task 2: `AudioPlayerService` Protocol in TuneDomain
+### Task 2: `AudioPlayerService` Protocol in TuneDomain + App Init
 
-Add `TuneDomain/Services/AudioPlayerService.swift` with the protocol definition.
+Add `TuneDomain/Services/AudioPlayerService.swift`. Set `AVPlayer.isObservationEnabled = true` in `TuneFlowApp` init. Update `AppRoute.player` to carry queue and index.
 
 **Stories:** S1, S2, S3, S4, S7, S9
-**ACs:** Domain / Protocol (all)
+**ACs:** iOS 26 Observable Setup (all), Domain / Protocol (all), Navigation wiring — AppRoute change
 
 -> Commit immediately after completing this task, following the commit rule.
 
 ### Task 3: `AVAudioPlayerService` + `AudioPlayerServiceSpy`
 
-Create `TuneUI/Player/AVAudioPlayerService.swift` (concrete AVPlayer wrapper). Create `TuneFlowTests/Helpers/AudioPlayerServiceSpy.swift` (test double).
+Create `TuneUI/Player/AVAudioPlayerService.swift`. Create `TuneFlowTests/Helpers/AudioPlayerServiceSpy.swift`.
 
-**Stories:** S1, S2, S3, S4, S7
-**ACs:** AVAudioPlayerService (all), `AudioPlayerServiceSpy` helper
+**Stories:** S1, S2, S3, S4, S7, S10
+**ACs:** AVAudioPlayerService (all), AudioPlayerServiceSpy helper
 
 -> Commit immediately after completing this task, following the commit rule.
 
@@ -183,8 +207,8 @@ Create `TuneUI/Player/AVAudioPlayerService.swift` (concrete AVPlayer wrapper). C
 
 Create `TuneUI/Player/PlayerViewModel.swift`. Write `TuneFlowTests/Player/PlayerViewModelTests.swift` covering all listed test cases.
 
-**Stories:** S1, S2, S3, S4, S5, S6, S7, S8, S9
-**ACs:** PlayerViewModel (all), Testing — all `PlayerViewModelTests` cases
+**Stories:** S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11
+**ACs:** PlayerViewModel (all), Testing — all PlayerViewModelTests cases
 
 -> Commit immediately after completing this task, following the commit rule.
 
@@ -192,7 +216,7 @@ Create `TuneUI/Player/PlayerViewModel.swift`. Write `TuneFlowTests/Player/Player
 
 Create `TuneUI/Player/PlayerView.swift` matching mockup and DESIGN.md. Create `TuneUI/Composers/PlayerComposer.swift`. Update `RootView` to replace placeholder. Update `SongsViewModel.songTapped(_:)` to pass queue and index.
 
-**Stories:** S1, S2, S3, S4, S5, S6, S7, S8, S9
+**Stories:** S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11
 **ACs:** PlayerView (all), PlayerComposer (all), Navigation wiring (all)
 
 -> Commit immediately after completing this task, following the commit rule.

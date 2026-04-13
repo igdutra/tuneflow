@@ -1,24 +1,53 @@
 # Audio Player Standard
 
+**Target: iOS 26 only.**
+
 ## Core Decision: AVPlayer, not AVAudioPlayer
 
 iTunes preview URLs are remote `.m4a` streams — `AVAudioPlayer` only works with local files. Always use `AVPlayer`.
 
 ---
 
+## iOS 26: Observable AVFoundation
+
+Starting iOS 26, AVPlayer/AVPlayerItem conform to `Observable`. This replaces KVO and Combine for state observation.
+
+**Opt-in once at app launch — before any player is created:**
+
+```swift
+// TuneFlowApp.swift
+AVPlayer.isObservationEnabled = true
+```
+
+This is a global flag. Set it in the `App` struct or before any playback object is instantiated. Changing it after creating players throws an exception.
+
+**What Observation covers (observe directly in SwiftUI):**
+- `player.timeControlStatus` — `.playing`, `.paused`, `.waitingToPlayAtSpecifiedRate`
+- `player.currentItem?.status` — `.readyToPlay`, `.failed`, `.unknown`
+- `player.rate`
+- `player.currentItem`
+
+**What still requires `addPeriodicTimeObserver`:**
+- Continuous `currentTime` / `progress` tracking — Observation only covers discrete state, not a stream of time values
+
+**What still requires `NotificationCenter`:**
+- `AVPlayerItemDidPlayToEndTime` — playback end detection
+
+**No Combine.** No KVO `.publisher(for:)`. No `cancellables` set. iOS 26 target means Observation is the only state observation mechanism needed.
+
+---
+
 ## Layer Architecture
 
 ```
-PlayerView (thin, declarative)
-    ↓ reads state from
-PlayerViewModel (@Observable, @MainActor)
+PlayerView (thin — observes AVPlayer directly via iOS 26 Observable APIs)
+    ↓ reads from
+PlayerViewModel (@Observable, @MainActor — owns service, exposes it to view)
     ↓ depends on protocol
-AudioPlayerService (protocol, defined in TuneDomain)
+AudioPlayerService (protocol in TuneDomain — the test seam)
     ↓ implemented by
-AVAudioPlayerService (wraps AVPlayer, lives in TuneUI)
+AVAudioPlayerService (wraps AVPlayer, lives in TuneUI/Player/)
 ```
-
-The `AudioPlayerService` protocol lives in `TuneDomain`. The `AVAudioPlayerService` concrete type lives in `TuneUI` — it is an infrastructure detail, not a domain concern.
 
 ---
 
@@ -40,47 +69,61 @@ public protocol AudioPlayerService: AnyObject, Sendable {
 }
 ```
 
-- Protocol is the only boundary `PlayerViewModel` sees — never `AVPlayer` directly
-- `AnyObject` constraint allows `@Observable` conformance on the implementation
-- Keep it minimal — only what the ViewModel actually needs
+- `AnyObject` constraint required — protocol is used as a class type in the ViewModel
+- No AVFoundation import in `TuneDomain`
 
 ---
 
 ## AVAudioPlayerService (TuneUI — concrete, wraps AVPlayer)
 
-Key implementation rules:
+**Expose the player for direct view observation:**
+
+```swift
+// View reads player.timeControlStatus directly — no stored isPlaying bool needed
+private(set) var player: AVPlayer?
+```
+
+**Defer player creation to `play(url:)`** — do not create in `init`. Per Apple guidance, avoid side effects at initialization time.
 
 **AVAudioSession** — configure once before first play:
+
 ```swift
 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
 try AVAudioSession.sharedInstance().setActive(true)
 ```
-`.playback` category ignores the silent switch and routes audio through speakers.
 
-**Periodic time observer** — use 0.25s interval, `preferredTimescale: 600`:
+**Periodic time observer** — still required for continuous time tracking:
+
 ```swift
 let interval = CMTime(seconds: 0.25, preferredTimescale: 600)
 timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-    let duration = self?.player.currentItem?.duration.seconds ?? 0
+    let duration = self?.player?.currentItem?.duration.seconds ?? 0
     guard duration.isFinite && duration > 0 else { return }
     self?.currentTime = time.seconds
     self?.progress = time.seconds / duration
 }
 ```
-Always guard `duration.isFinite` — streaming items report `.indefinite` until buffered.
 
-**Playback end** — use `NotificationCenter`, not delegation:
+**Playback end** — NotificationCenter (still required):
+
 ```swift
-NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: playerItem)
-    .receive(on: DispatchQueue.main)
-    .sink { [weak self] _ in
-        self?.isPlaying = false
-        self?.player?.seek(to: .zero)
+NotificationCenter.default.addObserver(
+    forName: AVPlayerItem.didPlayToEndTimeNotification,
+    object: playerItem,
+    queue: .main
+) { [weak self] _ in
+    guard let self else { return }
+    if isRepeatOn {
+        player?.seek(to: .zero)
+        player?.play()
+    } else {
+        stop()
     }
-    .store(in: &cancellables)
+}
 ```
 
-**Cleanup** — always remove time observer before releasing:
+**Cleanup** — remove time observer before releasing:
+
 ```swift
 func stop() {
     player?.pause()
@@ -88,24 +131,15 @@ func stop() {
         player.removeTimeObserver(token)
         timeObserverToken = nil
     }
-    cancellables.removeAll()
     player = nil
+    isPlaying = false
 }
 ```
-Call `stop()` from `deinit` as a safety net. Failing to remove the token causes crashes.
 
-**Duration** — read from `AVPlayerItem.duration`, not a hardcoded 30s:
-```swift
-player.currentItem?.publisher(for: \.duration)
-    .receive(on: DispatchQueue.main)
-    .sink { [weak self] duration in
-        guard duration.isFinite else { return }
-        self?.duration = duration.seconds
-    }
-    .store(in: &cancellables)
-```
+`stop()` must be idempotent. Also call it in `deinit` as a safety net.
 
-**Artwork URL** — iTunes returns 100×100; replace for high-res:
+**Artwork URL** — iTunes returns 100×100; replace in ViewModel (not service):
+
 ```swift
 urlString.replacingOccurrences(of: "100x100", with: "600x600")
 ```
@@ -119,47 +153,64 @@ urlString.replacingOccurrences(of: "100x100", with: "600x600")
 @Observable
 final class PlayerViewModel {
     let song: Song
-    private let audioPlayer: AudioPlayerService
+    let audioService: AVAudioPlayerService  // exposed — view reads player.timeControlStatus
 
-    private(set) var isPlaying: Bool = false
-    private(set) var progress: Double = 0
     private(set) var currentTime: TimeInterval = 0
     private(set) var duration: TimeInterval = 0
+    private(set) var progress: Double = 0
+    private(set) var isRepeatOn: Bool = false
+    private(set) var isShuffleOn: Bool = false
 
     var currentTimeFormatted: String { formatTime(currentTime) }
     var durationFormatted: String { formatTime(duration) }
+    var artworkURL: URL? { /* replace 100x100 → 600x600 */ }
 
-    init(song: Song, audioPlayer: AudioPlayerService) {
-        self.song = song
-        self.audioPlayer = audioPlayer
-    }
+    @ObservationIgnored private let router: AppRouter
+    @ObservationIgnored private let queue: [Song]
+    @ObservationIgnored private var currentIndex: Int
+
+    init(song: Song, queue: [Song], currentIndex: Int,
+         audioService: AVAudioPlayerService, router: AppRouter) { ... }
 
     func onAppear() { /* play */ }
     func onDisappear() { /* stop */ }
-    func didTapPlayPause() { /* toggle */ }
-    func didTapForward() { /* next in queue via router */ }
-    func didTapBackward() { /* restart or prev: threshold 3s */ }
+    func didTapPlayPause() { /* toggle via player.timeControlStatus */ }
+    func didTapForward() { /* sequential or random when shuffle on */ }
+    func didTapBackward() { /* >3s → seek to zero; else → prev */ }
+    func didTapRepeat() { isRepeatOn.toggle() }
+    func didTapShuffle() { isShuffleOn.toggle() }
+    func didTapMoreOptions() { router.present(.moreOptions(song)) }
 }
 ```
 
-- ViewModel never imports `AVFoundation` — only `TuneDomain`
-- `@ObservationIgnored` on internal bookkeeping: Combine cancellables, pagination cursors
-- Use `onAppear`/`onDisappear` — not `.task` — because player lifecycle must stop on disappear
+- ViewModel never imports `AVFoundation`
+- `isPlaying` in the **view** = `viewModel.audioService.player?.timeControlStatus == .playing`
+- `@ObservationIgnored` on non-UI internals: router, audioService (when not directly observed by view), queue, currentIndex
+
+**Backward skip rule:**
+```
+currentTime > 3s  →  seek to zero (restart)
+currentTime ≤ 3s  →  navigate to previous; if at start, seek to zero
+```
+
+**Shuffle rule:**
+```
+isShuffleOn == true  →  pick random index ≠ currentIndex from queue
+isShuffleOn == false →  sequential next/prev
+```
 
 ---
 
-## Backward Skip Rule
+## Repeat & Shuffle
 
-```
-currentTime > 3s  →  seek to zero (restart current song)
-currentTime ≤ 3s  →  navigate to previous song in queue
-```
+Both are ViewModel-level state flags passed to / read by the service's end-of-playback handler.
 
-This mirrors standard music player UX (Spotify, Apple Music).
+- **Repeat**: when `AVPlayerItemDidPlayToEndTime` fires and `isRepeatOn == true` → seek to `.zero` + play instead of stopping
+- **Shuffle**: affects `didTapForward()` index selection only — not a separate AVPlayer API
 
 ---
 
-## Composer Wiring (TuneFlowApp)
+## Composer Wiring
 
 ```swift
 @MainActor
@@ -167,21 +218,23 @@ enum PlayerComposer {
     static func compose(
         song: Song,
         queue: [Song],
-        audioPlayer: AudioPlayerService,
-        recentlyPlayedRepository: RecentlyPlayedRepository
+        currentIndex: Int,
+        router: AppRouter
     ) -> some View {
+        let service = AVAudioPlayerService()
         let viewModel = PlayerViewModel(
             song: song,
             queue: queue,
-            audioPlayer: audioPlayer,
-            recentlyPlayedRepository: recentlyPlayedRepository
+            currentIndex: currentIndex,
+            audioService: service,
+            router: router
         )
         return PlayerView(viewModel: viewModel)
     }
 }
 ```
 
-The `AVAudioPlayerService` instance is created once in `TuneFlowApp` and passed down — one player instance shared across navigation to prevent overlapping audio.
+Service is created per-navigation inside the composer — not a global singleton.
 
 ---
 
@@ -193,96 +246,56 @@ The `AudioPlayerService` protocol is the test seam. Use a spy — never instanti
 
 ```swift
 final class AudioPlayerServiceSpy: AudioPlayerService {
-    // Stubbed state (tests set these directly)
     var isPlaying: Bool = false
     var currentTime: TimeInterval = 0
     var duration: TimeInterval = 30
     var progress: Double = 0
 
-    // Recorded calls
     private(set) var playCallCount = 0
     private(set) var playCalledWithURL: URL?
     private(set) var pauseCallCount = 0
+    private(set) var resumeCallCount = 0
     private(set) var stopCallCount = 0
     private(set) var seekCalledWithTime: TimeInterval?
 
     func play(url: URL) { playCallCount += 1; playCalledWithURL = url; isPlaying = true }
     func pause()        { pauseCallCount += 1; isPlaying = false }
-    func resume()       { isPlaying = true }
+    func resume()       { resumeCallCount += 1; isPlaying = true }
     func stop()         { stopCallCount += 1; isPlaying = false }
     func seek(to time: TimeInterval) { seekCalledWithTime = time }
 }
 ```
 
-### ViewModel Test Suite Template
+### Test suite
 
 ```swift
 @MainActor
 struct PlayerViewModelTests {
-
-    @Test func onAppear_startsPlayback() {
-        let (sut, spy) = makeSUT()
-
-        sut.onAppear()
-
-        #expect(spy.playCallCount == 1)
-        #expect(spy.playCalledWithURL == Song.fixture.previewURL)
-    }
-
-    @Test func onDisappear_stopsPlayback() {
-        let (sut, spy) = makeSUT()
-        sut.onAppear()
-
-        sut.onDisappear()
-
-        #expect(spy.stopCallCount == 1)
-    }
-
-    @Test func didTapPlayPause_whenPlaying_pauses() {
-        let (sut, spy) = makeSUT()
-        spy.isPlaying = true
-
-        sut.didTapPlayPause()
-
-        #expect(spy.pauseCallCount == 1)
-    }
-
-    @Test func didTapBackward_whenBeyondThreshold_seeksToZero() {
-        let (sut, spy) = makeSUT()
-        spy.currentTime = 10
-
-        sut.didTapBackward()
-
-        #expect(spy.seekCalledWithTime == 0)
-    }
-}
-
-private extension PlayerViewModelTests {
-    typealias SUTBundle = (sut: PlayerViewModel, spy: AudioPlayerServiceSpy)
-
-    func makeSUT(source: SourceLocation = #_sourceLocation) -> SUTBundle {
-        let spy = AudioPlayerServiceSpy()
-        let sut = PlayerViewModel(song: .fixture, audioPlayer: spy)
-        _ = source
-        return (sut, spy)
-    }
+    @Test func onAppear_callsPlay_withSongPreviewURL() { ... }
+    @Test func onAppear_whenNoPreviewURL_doesNotCallPlay() { ... }
+    @Test func onDisappear_callsStop() { ... }
+    @Test func didTapPlayPause_whenPlaying_callsPause() { ... }
+    @Test func didTapPlayPause_whenPaused_callsResume() { ... }
+    @Test func didTapForward_sequentialMode_pushesNextSong() { ... }
+    @Test func didTapForward_atEndOfQueue_doesNothing() { ... }
+    @Test func didTapForward_shuffleOn_pushesRandomSong() { ... }
+    @Test func didTapBackward_whenBeyondThreshold_seeksToZero() { ... }
+    @Test func didTapBackward_whenWithinThreshold_andPrevExists_pushesPrevSong() { ... }
+    @Test func didTapBackward_whenAtStart_seeksToZero() { ... }
+    @Test func didTapRepeat_togglesRepeatOn() { ... }
+    @Test func didTapShuffle_togglesShuffleOn() { ... }
+    @Test func didTapMoreOptions_presentsSheet() { ... }
+    @Test func currentTimeFormatted_returns_correctString() { ... }
+    @Test func artworkURL_replaces100x100With600x600() { ... }
 }
 ```
 
-### What to test
-
-- `onAppear` calls `play(url:)` with the song's `previewURL`
-- `onDisappear` calls `stop()`
-- `didTapPlayPause` toggles between `pause()` and `resume()`
-- `didTapBackward` seeks to zero when `currentTime > 3`, navigates back otherwise
-- Computed display properties (`currentTimeFormatted`, `durationFormatted`) return correct strings
-- Progress bar values clamp to `[0, 1]`
-
 ### What NOT to test in unit tests
 
-- Actual audio output (no simulator required — test against the spy)
-- `AVAudioSession` configuration (integration concern)
-- `addPeriodicTimeObserver` callbacks (test the ViewModel's reaction to state changes via spy properties, not the AVFoundation plumbing)
+- Actual audio output
+- `AVAudioSession` configuration
+- `addPeriodicTimeObserver` callbacks (test ViewModel reaction via spy state, not the AVFoundation plumbing)
+- `AVPlayer.isObservationEnabled` (set at app init — not a ViewModel concern)
 
 ---
 
@@ -290,9 +303,11 @@ private extension PlayerViewModelTests {
 
 | Pitfall | Fix |
 |---|---|
+| Setting `isObservationEnabled` after creating a player | Set it in `TuneFlowApp` before any player init — it throws if changed late |
+| Storing `isPlaying` as a bool on the ViewModel | Read `player.timeControlStatus` directly in SwiftUI — it's Observable now |
+| Using Combine for state observation | iOS 26 target — use Observation. Only time observer and NotificationCenter still needed |
 | Forgetting `removeTimeObserver` | Call in `stop()` AND `deinit` as safety net |
 | Reading duration before buffered | Guard `duration.isFinite && duration > 0` |
-| Skipping `AVAudioSession` setup | No sound on device (simulator works fine without it) |
-| `[weak self]` missing in closures | Retain cycle — always capture weak in observer callbacks |
-| Creating multiple `AVPlayer` instances | One shared instance at app level; teardown before reuse |
+| Skipping `AVAudioSession` setup | No sound on device (simulator works without it) |
+| `[weak self]` missing in time observer closure | Retain cycle — always capture weak |
 | Checking `isPlaying` via `player.rate` | Use `timeControlStatus` — rate can be non-zero while buffering |
