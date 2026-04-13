@@ -12,7 +12,7 @@ struct SongsView: View {
 
     var body: some View {
         List {
-            if viewModel.hasRecentSongs {
+            if viewModel.hasRecentSongs && viewModel.searchText.isEmpty {
                 Section("Recently Played") {
                     ForEach(viewModel.recentSongs) { song in
                         SongRowView(
