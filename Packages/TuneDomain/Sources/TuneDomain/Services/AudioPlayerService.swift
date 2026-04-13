@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 public protocol AudioPlayerService: AnyObject, Sendable {
     var isPlaying: Bool { get }
     var currentTime: TimeInterval { get }

@@ -23,30 +23,8 @@ class AVAudioPlayerService: AudioPlayerService {
 
     // MARK: - AudioPlayerService Methods
 
-    nonisolated func play(url: URL) {
-        Task { @MainActor in self._play(url: url) }
-    }
-
-    nonisolated func pause() {
-        Task { @MainActor in self._pause() }
-    }
-
-    nonisolated func resume() {
-        Task { @MainActor in self._resume() }
-    }
-
-    nonisolated func stop() {
-        Task { @MainActor in self._stop() }
-    }
-
-    nonisolated func seek(to time: TimeInterval) {
-        Task { @MainActor in self._seek(to: time) }
-    }
-
-    // MARK: - Private Implementation
-
-    private func _play(url: URL) {
-        _stop()
+    func play(url: URL) {
+        stop()
         configureAudioSession()
         let item = AVPlayerItem(url: url)
         let newPlayer = AVPlayer(playerItem: item)
@@ -59,19 +37,19 @@ class AVAudioPlayerService: AudioPlayerService {
         publishState()
     }
 
-    private func _pause() {
+    func pause() {
         player?.pause()
         isPlaying = false
         publishState()
     }
 
-    private func _resume() {
+    func resume() {
         player?.play()
         isPlaying = true
         publishState()
     }
 
-    private func _stop() {
+    func stop() {
         removeTimeObserver()
         player?.pause()
         player = nil
@@ -82,7 +60,7 @@ class AVAudioPlayerService: AudioPlayerService {
         publishState()
     }
 
-    private func _seek(to time: TimeInterval) {
+    func seek(to time: TimeInterval) {
         let cmTime = CMTime(seconds: time, preferredTimescale: 600)
         player?.seek(to: cmTime)
         currentTime = time
@@ -147,11 +125,11 @@ class AVAudioPlayerService: AudioPlayerService {
             guard let self else { return }
             Task { @MainActor in
                 if self.isRepeatOn {
-                    self._seek(to: 0)
+                    self.seek(to: 0)
                     self.player?.play()
                     self.isPlaying = true
                 } else {
-                    self._stop()
+                    self.stop()
                 }
                 self.publishState()
             }
