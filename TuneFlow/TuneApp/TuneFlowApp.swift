@@ -29,9 +29,7 @@ struct TuneFlowApp: App {
             RootView(
                 songRepository: songRepository,
                 audioService: audioService,
-                trackPlayerScreenViewed: { [weak eventTracker] song in
-                    eventTracker?.track(PlayerEvent.screenViewed(songName: song.trackName, artist: song.artistName))
-                },
+                trackPlayerScreenViewed: makeTrackPlayerScreenViewed(),
                 recentlyPlayedRepository: recentlyPlayedRepository
             )
             .preferredColorScheme(.dark)
@@ -43,8 +41,13 @@ struct TuneFlowApp: App {
 
 public typealias TrackPlayerScreenViewed = (Song) -> Void
 
+// Note: The reasoning behing making a closure and injecting down is for TuneUI (that can be moved to separate module) to remain agnostic of Analytics details and the PlayerEvent lives in the Main App.
+// We could make the case that TuneUI is fine to have PlayerEvent and we simply inject an implementation of `EventTracker`.
+// It depends on what we want to achieve!
 private extension TuneFlowApp {
-    func trackPlayerScreenViewed(_ song: Song) {
-        eventTracker.track(PlayerEvent.screenViewed(songName: song.trackName, artist: song.artistName))
+    func makeTrackPlayerScreenViewed() -> TrackPlayerScreenViewed {
+        { [weak eventTracker] song in
+            eventTracker?.track(PlayerEvent.screenViewed(songName: song.trackName, artist: song.artistName))
+        }
     }
 }
