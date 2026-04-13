@@ -4,7 +4,7 @@ enum ViewState: Sendable {
     case idle
     case loading
     case loaded
-    case error(Error)
+    case error
 }
 
 extension ViewState {
@@ -23,8 +23,8 @@ extension ViewState {
         return false
     }
 
-    var error: Error? {
-        if case .error(let error) = self { return error }
-        return nil
+    var hasError: Bool {
+        if case .error = self { return true }
+        return false
     }
 }

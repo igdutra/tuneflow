@@ -51,7 +51,8 @@ final class SongsViewModel {
             hasReachedEnd = result.count < pageSize
             state = .loaded
         } catch {
-            state = .error(error)
+            state = .error
+            // TODO: save error
         }
     }
 

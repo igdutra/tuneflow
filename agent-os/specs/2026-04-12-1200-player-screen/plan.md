@@ -1,6 +1,6 @@
 # Track 5 — Player Screen — Plan
 
-> Commit Rule: Immediately after completing each task, create exactly one commit before starting the next task. Never batch multiple tasks into one commit and never leave a completed task uncommitted. Commit message must be a single line: task title + key files touched.
+> Commit Rule: Immediately after completing each task, create exactly one commit before starting the next task. Never batch multiple tasks into one commit and never leave a completed task uncommitted. Commit message must be a single line: task title + key files touched - No Co-Authored-By trailer.
 
 ## Overview
 

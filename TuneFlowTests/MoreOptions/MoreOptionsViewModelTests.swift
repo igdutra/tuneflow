@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import TuneDomain
+internal import SwiftUI
 @testable import TuneFlow
 
 @MainActor
