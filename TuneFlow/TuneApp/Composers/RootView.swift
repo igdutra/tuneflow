@@ -3,10 +3,12 @@ import TuneDomain
 
 struct RootView: View {
     private let songRepository: any SongRepository
+    private let audioService: any AudioPlayerService
     @State private var router = AppRouter()
 
-    init(songRepository: any SongRepository) {
+    init(songRepository: any SongRepository, audioService: any AudioPlayerService) {
         self.songRepository = songRepository
+        self.audioService = audioService
     }
 
     var body: some View {
@@ -14,8 +16,14 @@ struct RootView: View {
             SongsComposer.compose(songRepository: songRepository, router: router)
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
-                    case .player(let song):
-                        Text("Player — \(song.trackName)") // Track 5 placeholder
+                    case .player(let song, let queue, let currentIndex):
+                        PlayerComposer.compose(
+                            song: song,
+                            queue: queue,
+                            currentIndex: currentIndex,
+                            audioService: audioService,
+                            router: router
+                        )
                     case .album(let collectionId):
                         AlbumComposer.compose(
                             collectionId: collectionId,

@@ -42,7 +42,7 @@ struct AlbumViewModelTests {
 
         await sut.load()
 
-        #expect(sut.state.error != nil)
+        #expect(sut.state.hasError == true)
     }
 
     @Test func load_onFailure_albumRemainsNil() async {

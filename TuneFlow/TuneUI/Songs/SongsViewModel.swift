@@ -23,7 +23,8 @@ final class SongsViewModel {
     }
 
     func selectSong(_ song: Song) {
-        router.push(.player(song))
+        let index = songs.firstIndex(of: song) ?? 0
+        router.push(.player(song, queue: songs, currentIndex: index))
     }
 
     func showMoreOptions(for song: Song) {
@@ -50,7 +51,8 @@ final class SongsViewModel {
             hasReachedEnd = result.count < pageSize
             state = .loaded
         } catch {
-            state = .error(error)
+            state = .error
+            // TODO: save error
         }
     }
 

@@ -19,7 +19,7 @@ struct AppRouterTests {
     @Test func push_appendsRouteToPath() {
         let sut = makeSUT()
 
-        sut.push(.player(.fixture()))
+        sut.push(.player(.fixture(), queue: [], currentIndex: 0))
 
         #expect(sut.path.count == 1)
     }
@@ -27,8 +27,8 @@ struct AppRouterTests {
     @Test func push_multipleTimes_appendsEachRoute() {
         let sut = makeSUT()
 
-        sut.push(.player(.fixture(id: 1)))
-        sut.push(.player(.fixture(id: 2)))
+        sut.push(.player(.fixture(id: 1), queue: [], currentIndex: 0))
+        sut.push(.player(.fixture(id: 2), queue: [], currentIndex: 0))
 
         #expect(sut.path.count == 2)
     }
@@ -37,7 +37,7 @@ struct AppRouterTests {
 
     @Test func pop_removesLastRoute() {
         let sut = makeSUT()
-        sut.push(.player(.fixture()))
+        sut.push(.player(.fixture(), queue: [], currentIndex: 0))
 
         sut.pop()
 
@@ -56,9 +56,9 @@ struct AppRouterTests {
 
     @Test func popToRoot_clearsAllRoutes() {
         let sut = makeSUT()
-        sut.push(.player(.fixture(id: 1)))
-        sut.push(.player(.fixture(id: 2)))
-        sut.push(.player(.fixture(id: 3)))
+        sut.push(.player(.fixture(id: 1), queue: [], currentIndex: 0))
+        sut.push(.player(.fixture(id: 2), queue: [], currentIndex: 1))
+        sut.push(.player(.fixture(id: 3), queue: [], currentIndex: 2))
 
         sut.popToRoot()
 
