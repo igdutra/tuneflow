@@ -38,7 +38,7 @@ struct SongsViewModelTests {
 
         #expect(spy.searchCallCount == 1)
         #expect(spy.searchCalledWithQuery == "Beatles")
-        #expect(spy.searchCalledWithLimit == 10)
+        #expect(spy.searchCalledWithLimit == 25)
         #expect(spy.searchCalledWithOffset == 0)
     }
 
@@ -105,16 +105,16 @@ struct SongsViewModelTests {
 
     @Test func loadMore_appendsNextPage() async {
         let (sut, spy, _) = makeSUT()
-        spy.stub(result: Song.fixtures(count: 10))
+        spy.stub(result: Song.fixtures(count: 25))
         sut.searchText = "Prince"
         await sut.search()
 
-        spy.stub(result: Song.fixtures(count: 5, startingId: 11))
+        spy.stub(result: Song.fixtures(count: 25, startingId: 26))
         await sut.loadMore()
 
-        #expect(sut.songs.count == 15)
+        #expect(sut.songs.count == 50)
         #expect(spy.searchCallCount == 2)
-        #expect(spy.searchCalledWithOffset == 10)
+        #expect(spy.searchCalledWithOffset == 25)
     }
 
     @Test func loadMore_whenReachedEnd_doesNotCallRepository() async {
