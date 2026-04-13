@@ -1,0 +1,32 @@
+{
+  "configurations" : [
+    {
+      "id" : "9B53E0E6-B131-46D8-860A-F25FD86EE590",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "maximumTestRepetitions" : 50,
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:TuneFlow.xcodeproj",
+      "identifier" : "92CEED9E2F883F7000C74A6A",
+      "name" : "TuneFlow"
+    },
+    "testExecutionOrdering" : "random"
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:TuneFlow.xcodeproj",
+        "identifier" : "92CEEDAD2F883F7200C74A6A",
+        "name" : "TuneFlowTests"
+      }
+    }
+  ],
+  "version" : 1
+}
