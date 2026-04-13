@@ -84,26 +84,11 @@ final class PlayerViewModel {
     }
 
     func didTapBackward() {
-        if currentTime > 3 {
-            audioService.seek(to: 0)
-        } else {
-            let prevIndex = currentIndex - 1
-            if prevIndex >= 0 {
-                router.pop()
-                let prev = queue[prevIndex]
-                router.push(.player(prev, queue: queue, currentIndex: prevIndex))
-            } else {
-                audioService.seek(to: 0)
-            }
-        }
+        // TODO: Deferred — button is disabled in the view pending queue navigation implementation
     }
 
     func didTapForward() {
-        let nextIndex = currentIndex + 1
-        guard nextIndex < queue.count else { return }
-        router.pop()
-        let next = queue[nextIndex]
-        router.push(.player(next, queue: queue, currentIndex: nextIndex))
+        // TODO: Deferred — button is disabled in the view pending queue navigation implementation
     }
 
     func didTapRepeat() {

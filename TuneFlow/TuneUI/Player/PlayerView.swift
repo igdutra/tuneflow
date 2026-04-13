@@ -145,6 +145,8 @@ struct PlayerView: View {
                     .font(.system(size: 28))
                     .foregroundStyle(.white)
             }
+            .disabled(true)
+            .opacity(0.5)
 
             playPauseButton
 
@@ -153,6 +155,8 @@ struct PlayerView: View {
                     .font(.system(size: 28))
                     .foregroundStyle(.white)
             }
+            .disabled(true)
+            .opacity(0.5)
         }
     }
 
