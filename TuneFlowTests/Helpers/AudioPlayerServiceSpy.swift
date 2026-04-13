@@ -6,6 +6,7 @@ final class AudioPlayerServiceSpy: AudioPlayerService {
     var currentTime: TimeInterval = 0
     var duration: TimeInterval = 30
     var progress: Double = 0
+    var onStateChange: (@MainActor @Sendable (AudioPlayerState) -> Void)?
 
     private(set) var playCallCount = 0
     private(set) var playCalledWithURL: URL?
@@ -19,4 +20,10 @@ final class AudioPlayerServiceSpy: AudioPlayerService {
     func resume()       { resumeCallCount += 1; isPlaying = true }
     func stop()         { stopCallCount += 1; isPlaying = false }
     func seek(to time: TimeInterval) { seekCalledWithTime = time }
+
+    /// Simulates the service emitting a state update into the wired callback.
+    @MainActor
+    func emit(_ state: AudioPlayerState) {
+        onStateChange?(state)
+    }
 }

@@ -1,4 +1,3 @@
-import AVFoundation
 import SwiftUI
 import TuneDomain
 
@@ -101,17 +100,14 @@ struct PlayerView: View {
         VStack(spacing: 8) {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    // Track
                     RoundedRectangle(cornerRadius: 2)
                         .fill(Color(hex: "#3A3A3C"))
                         .frame(height: 4)
 
-                    // Fill
                     RoundedRectangle(cornerRadius: 2)
                         .fill(Color.white)
                         .frame(width: geo.size.width * viewModel.progress, height: 4)
 
-                    // Thumb
                     Circle()
                         .fill(Color.white)
                         .frame(width: 12, height: 12)
@@ -129,7 +125,7 @@ struct PlayerView: View {
 
                 Spacer()
 
-                Text("-\(viewModel.durationFormatted)")
+                Text("-\(viewModel.remainingTimeFormatted)")
                     .font(.system(size: 13))
                     .foregroundStyle(.white.opacity(0.6))
             }
@@ -157,10 +153,7 @@ struct PlayerView: View {
     }
 
     private var playPauseButton: some View {
-        let isPlaying = viewModel.avPlayer?.timeControlStatus == .playing
-        let isReady = viewModel.avPlayer?.currentItem?.status == .readyToPlay
-
-        return Button(action: viewModel.didTapPlayPause) {
+        Button(action: viewModel.didTapPlayPause) {
             ZStack {
                 Circle()
                     .fill(Color(hex: "#3A3A3C").opacity(0.8))
@@ -171,12 +164,12 @@ struct PlayerView: View {
                     )
                     .frame(width: 56, height: 56)
 
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 22))
                     .foregroundStyle(.white)
-                    .offset(x: isPlaying ? 0 : 2)
+                    .offset(x: viewModel.isPlaying ? 0 : 2)
             }
         }
-        .disabled(!isReady && viewModel.avPlayer != nil)
+        .disabled(!viewModel.isReadyToPlay)
     }
 }

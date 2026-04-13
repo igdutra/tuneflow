@@ -4,21 +4,24 @@ import TuneDomain
 @MainActor
 class AVAudioPlayerService: AudioPlayerService {
 
-    // MARK: - Public
+    // MARK: - AudioPlayerService
 
-    private(set) var player: AVPlayer?
     private(set) var isPlaying: Bool = false
     private(set) var currentTime: TimeInterval = 0
     private(set) var duration: TimeInterval = 0
     private(set) var progress: Double = 0
+    var onStateChange: (@MainActor @Sendable (AudioPlayerState) -> Void)?
 
+    // MARK: - Internal
+
+    private(set) var player: AVPlayer?
     var isRepeatOn: Bool = false
 
     // MARK: - Private
 
     private var timeObserverToken: Any?
 
-    // MARK: - AudioPlayerService
+    // MARK: - AudioPlayerService Methods
 
     nonisolated func play(url: URL) {
         Task { @MainActor in self._play(url: url) }
@@ -48,20 +51,24 @@ class AVAudioPlayerService: AudioPlayerService {
         let item = AVPlayerItem(url: url)
         let newPlayer = AVPlayer(playerItem: item)
         player = newPlayer
+        observeItemReady(item: item)
         newPlayer.play()
         isPlaying = true
         addPeriodicTimeObserver(to: newPlayer)
         observePlaybackEnd(for: item)
+        publishState()
     }
 
     private func _pause() {
         player?.pause()
         isPlaying = false
+        publishState()
     }
 
     private func _resume() {
         player?.play()
         isPlaying = true
+        publishState()
     }
 
     private func _stop() {
@@ -70,13 +77,38 @@ class AVAudioPlayerService: AudioPlayerService {
         player = nil
         isPlaying = false
         currentTime = 0
+        duration = 0
         progress = 0
+        publishState()
     }
 
     private func _seek(to time: TimeInterval) {
         let cmTime = CMTime(seconds: time, preferredTimescale: 600)
         player?.seek(to: cmTime)
         currentTime = time
+        publishState()
+    }
+
+    // MARK: - Item Ready
+
+    private func observeItemReady(item: AVPlayerItem) {
+        NotificationCenter.default.addObserver(
+            forName: AVPlayerItem.timeJumpedNotification,
+            object: item,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in self.publishState() }
+        }
+        // Observe status via KVO — needed for isReadyToPlay
+        Task { @MainActor in
+            for await _ in NotificationCenter.default.notifications(
+                named: AVPlayerItem.newAccessLogEntryNotification,
+                object: item
+            ) {
+                self.publishState()
+            }
+        }
     }
 
     // MARK: - Time Observer
@@ -92,6 +124,7 @@ class AVAudioPlayerService: AudioPlayerService {
                     self.duration = total
                     self.progress = self.currentTime / total
                 }
+                self.publishState()
             }
         }
         timeObserverToken = token
@@ -120,8 +153,23 @@ class AVAudioPlayerService: AudioPlayerService {
                 } else {
                     self._stop()
                 }
+                self.publishState()
             }
         }
+    }
+
+    // MARK: - State Publishing
+
+    private func publishState() {
+        let isReady = player?.currentItem?.status == .readyToPlay
+        let state = AudioPlayerState(
+            isPlaying: isPlaying,
+            isReadyToPlay: isReady,
+            currentTime: currentTime,
+            duration: duration,
+            progress: progress
+        )
+        onStateChange?(state)
     }
 
     // MARK: - Audio Session
@@ -134,8 +182,6 @@ class AVAudioPlayerService: AudioPlayerService {
     // MARK: - Deinit
 
     nonisolated deinit {
-        // Time observer token is removed in stop() — this is a safety net only.
-        // Accessing MainActor-isolated state from deinit is not safe in Swift 6;
-        // rely on stop() being called before deallocation (onDisappear lifecycle).
+        // Time observer removed in stop() / onDisappear lifecycle.
     }
 }
