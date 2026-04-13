@@ -42,18 +42,21 @@ final class PlayerViewModel {
     @ObservationIgnored private let router: AppRouter
     @ObservationIgnored private let queue: [Song]
     @ObservationIgnored private let currentIndex: Int
+    @ObservationIgnored private let recentlyPlayedRepository: any RecentlyPlayedRepository
 
     init(
         song: Song,
         queue: [Song],
         currentIndex: Int,
         audioService: any AudioPlayerService,
+        recentlyPlayedRepository: any RecentlyPlayedRepository,
         router: AppRouter
     ) {
         self.song = song
         self.queue = queue
         self.currentIndex = currentIndex
         self.audioService = audioService
+        self.recentlyPlayedRepository = recentlyPlayedRepository
         self.router = router
     }
 
@@ -63,6 +66,10 @@ final class PlayerViewModel {
         audioService.onStateChange = { [weak self] state in
             guard let self else { return }
             self.apply(state)
+        }
+        Task { [weak self] in
+            guard let self else { return }
+            try? await recentlyPlayedRepository.save(song)
         }
         guard let url = song.previewURL else { return }
         audioService.play(url: url)

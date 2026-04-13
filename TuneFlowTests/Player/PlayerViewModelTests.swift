@@ -145,6 +145,32 @@ struct PlayerViewModelTests {
     }
 
 
+    // MARK: - Recently Played
+
+    @Test("onAppear calls save on recently played repository")
+    func onAppear_callsSaveOnRecentlyPlayedRepository() async {
+        let song = Song.fixture()
+        let (sut, _, _, repoSpy) = makeSUT(song: song)
+
+        sut.onAppear()
+        await Task.yield()
+
+        #expect(repoSpy.saveCallCount == 1)
+        #expect(repoSpy.saveCalledWithSong == song)
+    }
+
+    @Test("onAppear save failure does not crash and playback continues")
+    func onAppear_saveFailure_doesNotCrashAndPlaybackContinues() async {
+        let previewURL = URL(string: "https://preview.com/song.m4a")!
+        let (sut, audioSpy, _, repoSpy) = makeSUT(song: .fixture(previewURL: previewURL))
+        repoSpy.stubSave(error: NSError(domain: "test", code: 0))
+
+        sut.onAppear()
+        await Task.yield()
+
+        #expect(audioSpy.playCallCount == 1)
+    }
+
     // MARK: - More Options
 
     @Test("didTapMoreOptions presents moreOptions sheet")
@@ -195,6 +221,28 @@ struct PlayerViewModelTests {
 private extension PlayerViewModelTests {
     typealias SUTBundle = (sut: PlayerViewModel, spy: AudioPlayerServiceSpy, router: AppRouter)
     typealias SUTBundleNoRouter = (sut: PlayerViewModel, spy: AudioPlayerServiceSpy)
+    typealias SUTBundleFull = (sut: PlayerViewModel, audioSpy: AudioPlayerServiceSpy, router: AppRouter, repoSpy: RecentlyPlayedRepositorySpy)
+
+    func makeSUT(
+        song: Song = .fixture(),
+        queue: [Song] = [],
+        currentIndex: Int = 0,
+        source: SourceLocation = #_sourceLocation
+    ) -> SUTBundleFull {
+        let audioSpy = AudioPlayerServiceSpy()
+        let repoSpy = RecentlyPlayedRepositorySpy()
+        let router = AppRouter()
+        let sut = PlayerViewModel(
+            song: song,
+            queue: queue,
+            currentIndex: currentIndex,
+            audioService: audioSpy,
+            recentlyPlayedRepository: repoSpy,
+            router: router
+        )
+        _ = source
+        return (sut, audioSpy, router, repoSpy)
+    }
 
     func makeSUT(
         song: Song = .fixture(),
@@ -202,17 +250,8 @@ private extension PlayerViewModelTests {
         currentIndex: Int = 0,
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundle {
-        let spy = AudioPlayerServiceSpy()
-        let router = AppRouter()
-        let sut = PlayerViewModel(
-            song: song,
-            queue: queue,
-            currentIndex: currentIndex,
-            audioService: spy,
-            router: router
-        )
-        _ = source
-        return (sut, spy, router)
+        let (sut, audioSpy, router, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
+        return (sut, audioSpy, router)
     }
 
     func makeSUT(
@@ -221,7 +260,7 @@ private extension PlayerViewModelTests {
         currentIndex: Int = 0,
         source: SourceLocation = #_sourceLocation
     ) -> SUTBundleNoRouter {
-        let (sut, spy, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
-        return (sut, spy)
+        let (sut, audioSpy, _, _) = makeSUT(song: song, queue: queue, currentIndex: currentIndex, source: source)
+        return (sut, audioSpy)
     }
 }
