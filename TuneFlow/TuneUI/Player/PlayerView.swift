@@ -82,14 +82,18 @@ struct PlayerView: View {
                 Button(action: viewModel.didTapShuffle) {
                     Image(systemName: "shuffle")
                         .font(.system(size: 18))
-                        .foregroundStyle(viewModel.isShuffleOn ? .white : Color(hex: "#8E8E93"))
+                        .foregroundStyle(Color(hex: "#8E8E93"))
                 }
+                .disabled(true)
+                .opacity(0.5)
 
                 Button(action: viewModel.didTapRepeat) {
                     Image(systemName: "repeat")
                         .font(.system(size: 18))
-                        .foregroundStyle(viewModel.isRepeatOn ? .white : Color(hex: "#8E8E93"))
+                        .foregroundStyle(Color(hex: "#8E8E93"))
                 }
+                .disabled(true)
+                .opacity(0.5)
             }
         }
     }

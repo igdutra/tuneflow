@@ -19,6 +19,8 @@ final class PlayerViewModel {
     private(set) var currentTime: TimeInterval = 0
     private(set) var duration: TimeInterval = 0
     private(set) var progress: Double = 0
+    // TODO: Deferred — shuffle and repeat require persistent state across navigations
+    // For now, these are disabled in the view with visual feedback (grayed out + disabled)
     private(set) var isRepeatOn: Bool = false
     private(set) var isShuffleOn: Bool = false
 
@@ -97,9 +99,7 @@ final class PlayerViewModel {
     }
 
     func didTapForward() {
-        // TODO: Shuffle is deferred (see didTapShuffle). For now, always go sequential.
         let nextIndex = currentIndex + 1
-
         guard nextIndex < queue.count else { return }
         router.pop()
         let next = queue[nextIndex]
@@ -107,18 +107,11 @@ final class PlayerViewModel {
     }
 
     func didTapRepeat() {
-        // TODO: Repeat functionality is deferred. Current issue: repeat state does not persist across
-        // song navigations because each PlayerViewModel is fresh. Fix requires moving repeat state to
-        // a persistent layer (service or router). See BUGFIX.md for full scope.
-        // For now, button toggles locally but has no effect on playback.
-        isRepeatOn.toggle()
+        // Deferred — button is disabled in the view
     }
 
     func didTapShuffle() {
-        // TODO: Shuffle functionality is deferred. Current issue: shuffle state resets on each song
-        // navigation because each PlayerViewModel is fresh. Fix requires persistent state layer.
-        // For now, button toggles locally but has no effect on next navigation.
-        isShuffleOn.toggle()
+        // Deferred — button is disabled in the view
     }
 
     func didTapMoreOptions() {
