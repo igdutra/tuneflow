@@ -14,8 +14,13 @@ struct RootView: View {
             SongsComposer.compose(songRepository: songRepository, router: router)
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
-                    case .player(let song, _, _):
-                        Text("Player — \(song.trackName)") // Track 5 placeholder — replaced in Task 5
+                    case .player(let song, let queue, let currentIndex):
+                        PlayerComposer.compose(
+                            song: song,
+                            queue: queue,
+                            currentIndex: currentIndex,
+                            router: router
+                        )
                     case .album(let collectionId):
                         AlbumComposer.compose(
                             collectionId: collectionId,
