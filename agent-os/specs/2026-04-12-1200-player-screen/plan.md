@@ -1,6 +1,6 @@
 # Track 5 — Player Screen — Plan
 
-> Once a task is successfully completed, commit. One commit per task. Single line: task title + key files touched.
+> Commit Rule: Immediately after completing each task, create exactly one commit before starting the next task. Never batch multiple tasks into one commit and never leave a completed task uncommitted. Commit message must be a single line: task title + key files touched.
 
 ## Overview
 
@@ -159,12 +159,16 @@ Then the screen renders correctly (artwork, title, artist) with playback control
 
 Create `agent-os/specs/2026-04-12-1200-player-screen/` with plan.md, shape.md, standards.md, references.md, visuals/.
 
+-> Commit immediately after completing this task, following the commit rule.
+
 ### Task 2: `AudioPlayerService` Protocol in TuneDomain
 
 Add `TuneDomain/Services/AudioPlayerService.swift` with the protocol definition.
 
 **Stories:** S1, S2, S3, S4, S7, S9
 **ACs:** Domain / Protocol (all)
+
+-> Commit immediately after completing this task, following the commit rule.
 
 ### Task 3: `AVAudioPlayerService` + `AudioPlayerServiceSpy`
 
@@ -173,6 +177,8 @@ Create `TuneUI/Player/AVAudioPlayerService.swift` (concrete AVPlayer wrapper). C
 **Stories:** S1, S2, S3, S4, S7
 **ACs:** AVAudioPlayerService (all), `AudioPlayerServiceSpy` helper
 
+-> Commit immediately after completing this task, following the commit rule.
+
 ### Task 4: `PlayerViewModel` + Tests
 
 Create `TuneUI/Player/PlayerViewModel.swift`. Write `TuneFlowTests/Player/PlayerViewModelTests.swift` covering all listed test cases.
@@ -180,12 +186,16 @@ Create `TuneUI/Player/PlayerViewModel.swift`. Write `TuneFlowTests/Player/Player
 **Stories:** S1, S2, S3, S4, S5, S6, S7, S8, S9
 **ACs:** PlayerViewModel (all), Testing — all `PlayerViewModelTests` cases
 
+-> Commit immediately after completing this task, following the commit rule.
+
 ### Task 5: `PlayerView` + `PlayerComposer` + Navigation Wiring
 
 Create `TuneUI/Player/PlayerView.swift` matching mockup and DESIGN.md. Create `TuneUI/Composers/PlayerComposer.swift`. Update `RootView` to replace placeholder. Update `SongsViewModel.songTapped(_:)` to pass queue and index.
 
 **Stories:** S1, S2, S3, S4, S5, S6, S7, S8, S9
 **ACs:** PlayerView (all), PlayerComposer (all), Navigation wiring (all)
+
+-> Commit immediately after completing this task, following the commit rule.
 
 ### Task 6: Validate All ACs
 
