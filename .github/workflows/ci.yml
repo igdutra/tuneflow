@@ -19,3 +19,19 @@ jobs:
 
       - name: Run integration tests
         run: swift test --package-path Packages/TuneAPI --filter TuneAPIIntegrationTests
+
+  app-tests:
+    name: App Tests
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run app tests
+        run: |
+          xcodebuild test \
+            -project TuneFlow.xcodeproj \
+            -scheme TuneFlow \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.0' \
+            -resultBundlePath TestResults \
+            CODE_SIGNING_ALLOWED=NO
