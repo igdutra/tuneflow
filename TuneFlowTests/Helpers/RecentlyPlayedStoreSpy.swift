@@ -8,7 +8,7 @@ final class RecentlyPlayedStoreSpy: RecentlyPlayedStore, @unchecked Sendable {
     private(set) var retrieveAllCallCount = 0
 
     private var stubbedInsertError: Error?
-    private var stubbedRetrieveAllResult: Result<[StoredSong], Error> = .success([])
+    private var stubbedRetrieveAllResult: Result<[Song], Error> = .success([])
 
     func insert(_ song: Song) async throws {
         insertCallCount += 1
@@ -16,7 +16,7 @@ final class RecentlyPlayedStoreSpy: RecentlyPlayedStore, @unchecked Sendable {
         if let error = stubbedInsertError { throw error }
     }
 
-    func retrieveAll() async throws -> [StoredSong] {
+    func retrieveAll() async throws -> [Song] {
         retrieveAllCallCount += 1
         return try stubbedRetrieveAllResult.get()
     }
@@ -25,7 +25,7 @@ final class RecentlyPlayedStoreSpy: RecentlyPlayedStore, @unchecked Sendable {
         stubbedInsertError = error
     }
 
-    func stub(result: [StoredSong]) {
+    func stub(result: [Song]) {
         stubbedRetrieveAllResult = .success(result)
     }
 

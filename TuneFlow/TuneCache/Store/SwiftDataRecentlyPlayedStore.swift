@@ -29,8 +29,7 @@ final actor SwiftDataRecentlyPlayedStore: RecentlyPlayedStore {
         }
     }
 
-    // TODO: Analyse Swift6 Errors
-    func retrieveAll() throws -> [StoredSong] {
+    func retrieveAll() async throws -> [Song] {
         // We sort in the FetchDescriptor so the persistent store (SwiftData/Core Data + SQLite) does the work,
         // which is more efficient and guarantees deterministic results instead of fetching unsorted data and sorting in memory.
         // SwiftData fetches are not ordered by default unless you explicitly provide sort descriptors; Core Data's ordered support
@@ -38,7 +37,7 @@ final actor SwiftDataRecentlyPlayedStore: RecentlyPlayedStore {
         let descriptor = FetchDescriptor<StoredSong>(
             sortBy: [SortDescriptor(\.lastPlayedAt, order: .reverse)]
         )
-        return try modelContext.fetch(descriptor)
+        return try modelContext.fetch(descriptor).map(StoredSongMapper.toDomain)
     }
     
     // MARK: - Private

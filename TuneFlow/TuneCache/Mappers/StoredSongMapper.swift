@@ -2,7 +2,7 @@ import Foundation
 import TuneDomain
 
 enum StoredSongMapper {
-    static func toStorage(from song: Song, cache: StoredPlayHistory?) -> StoredSong {
+    nonisolated static func toStorage(from song: Song, cache: StoredPlayHistory?) -> StoredSong {
         StoredSong(
             id: song.id,
             title: song.trackName,
@@ -14,7 +14,7 @@ enum StoredSongMapper {
         )
     }
 
-    static func toDomain(from stored: StoredSong) -> Song {
+    nonisolated static func toDomain(from stored: StoredSong) -> Song {
         Song(
             id: stored.id,
             trackName: stored.title,
