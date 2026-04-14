@@ -19,7 +19,7 @@ final class PlayerViewModel {
     private(set) var currentTime: TimeInterval = 0
     private(set) var duration: TimeInterval = 0
     private(set) var progress: Double = 0
-    // TODO: Deferred — shuffle and repeat require persistent state across navigations
+    // TODO: JIRA-1 Deferred — shuffle and repeat require persistent state across navigations
     // For now, these are disabled in the view with visual feedback (grayed out + disabled)
     private(set) var isRepeatOn: Bool = false
     private(set) var isShuffleOn: Bool = false
@@ -144,11 +144,11 @@ final class PlayerViewModel {
     }
 
     func didTapBackward() {
-        // TODO: Deferred — button is disabled in the view pending queue navigation implementation
+        // TODO: JIRA-2 Deferred — button is disabled in the view pending queue navigation implementation
     }
 
     func didTapForward() {
-        // TODO: Deferred — button is disabled in the view pending queue navigation implementation
+        // TODO: JIRA-2 Deferred — button is disabled in the view pending queue navigation implementation
     }
 
     func didTapRepeat() {

@@ -81,7 +81,7 @@ struct SongsView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(.black, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        // TODO: JIRA-xxxx Verify toolbar + .searchable behavior. ACs are met but experience and code might not me optimal. Needs verification.
+        // TODO: JIRA-4 Verify toolbar + .searchable behavior. ACs are met but experience and code might not me optimal. Needs verification.
         // Note: if needed, search can be transformed to a custom component
         // to match the design more closely. Going with native for the moment.
         .searchable(
