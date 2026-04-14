@@ -51,7 +51,7 @@ struct SongsViewModelTests {
 
         await sut.search()
 
-        #expect(sut.state.hasError == true)
+        #expect(sut.state.error != nil)
         #expect(sut.songs.isEmpty)
     }
 
