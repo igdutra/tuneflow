@@ -13,7 +13,7 @@ final class LocalRecentlyPlayedRepository: RecentlyPlayedRepository {
     }
 
     func loadRecent(limit: Int) async throws -> [Song] {
-        let stored = try await store.retrieveAll()
-        return stored.prefix(limit).map(StoredSongMapper.toDomain)
+        let songs = try await store.retrieveAll()
+        return Array(songs.prefix(limit))
     }
 }

@@ -1,6 +1,5 @@
 import Testing
 import Foundation
-import SwiftData
 import TuneDomain
 @testable import TuneFlow
 
@@ -10,7 +9,7 @@ struct LocalRecentlyPlayedRepositoryTests {
 
     @Test("save delegates to store insert")
     func save_delegatesToStoreInsert() async throws {
-        let (sut, spy, _) = makeSUT()
+        let (sut, spy) = makeSUT()
 
         try await sut.save(.fixture())
 
@@ -19,7 +18,7 @@ struct LocalRecentlyPlayedRepositoryTests {
 
     @Test("save passes correct song to store")
     func save_passesCorrectSong() async throws {
-        let (sut, spy, _) = makeSUT()
+        let (sut, spy) = makeSUT()
         let song = Song.fixture(id: 42, trackName: "Thriller")
 
         try await sut.save(song)
@@ -29,7 +28,7 @@ struct LocalRecentlyPlayedRepositoryTests {
 
     @Test("save on store error throws error")
     func save_onStoreError_throwsError() async throws {
-        let (sut, spy, _) = makeSUT()
+        let (sut, spy) = makeSUT()
         spy.stubInsert(error: anyError())
 
         await #expect(throws: (any Error).self) {
@@ -41,7 +40,7 @@ struct LocalRecentlyPlayedRepositoryTests {
 
     @Test("loadRecent delegates to store retrieveAll")
     func loadRecent_delegatesToStoreRetrieveAll() async throws {
-        let (sut, spy, _) = makeSUT()
+        let (sut, spy) = makeSUT()
 
         _ = try await sut.loadRecent(limit: 5)
 
@@ -50,9 +49,8 @@ struct LocalRecentlyPlayedRepositoryTests {
 
     @Test("loadRecent maps stored songs back to domain songs")
     func loadRecent_mapsStoredSongsBackToDomainSongs() async throws {
-        let (sut, spy, container) = makeSUT()
-        let storedSongs = makeStoredSongs(ids: [1, 2], container: container)
-        spy.stub(result: storedSongs)
+        let (sut, spy) = makeSUT()
+        spy.stub(result: makeSongs(ids: [1, 2]))
 
         let result = try await sut.loadRecent(limit: 10)
 
@@ -62,9 +60,8 @@ struct LocalRecentlyPlayedRepositoryTests {
 
     @Test("loadRecent respects limit")
     func loadRecent_respectsLimit() async throws {
-        let (sut, spy, container) = makeSUT()
-        let storedSongs = makeStoredSongs(ids: [1, 2, 3, 4, 5], container: container)
-        spy.stub(result: storedSongs)
+        let (sut, spy) = makeSUT()
+        spy.stub(result: makeSongs(ids: [1, 2, 3, 4, 5]))
 
         let result = try await sut.loadRecent(limit: 3)
 
@@ -73,7 +70,7 @@ struct LocalRecentlyPlayedRepositoryTests {
 
     @Test("loadRecent on store error throws error")
     func loadRecent_onStoreError_throwsError() async throws {
-        let (sut, spy, _) = makeSUT()
+        let (sut, spy) = makeSUT()
         spy.stub(error: anyError())
 
         await #expect(throws: (any Error).self) {
@@ -85,31 +82,16 @@ struct LocalRecentlyPlayedRepositoryTests {
 // MARK: - Helpers
 
 private extension LocalRecentlyPlayedRepositoryTests {
-    typealias SUTBundle = (sut: LocalRecentlyPlayedRepository, spy: RecentlyPlayedStoreSpy, container: ModelContainer)
+    typealias SUTBundle = (sut: LocalRecentlyPlayedRepository, spy: RecentlyPlayedStoreSpy)
 
     func makeSUT() -> SUTBundle {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(for: StoredSong.self, StoredPlayHistory.self, configurations: config)
         let spy = RecentlyPlayedStoreSpy()
         let sut = LocalRecentlyPlayedRepository(store: spy)
-        return (sut, spy, container)
+        return (sut, spy)
     }
 
-    func makeStoredSongs(ids: [Int], container: ModelContainer) -> [StoredSong] {
-        let context = ModelContext(container)
-        return ids.map { id in
-            let song = StoredSong(
-                id: id,
-                title: "Track \(id)",
-                artist: "Artist",
-                albumName: "Album",
-                url: URL(string: "https://preview.com/\(id).m4a")!,
-                artworkUrl: URL(string: "https://artwork.com/\(id).jpg")!,
-                lastPlayedAt: Date()
-            )
-            context.insert(song)
-            return song
-        }
+    func makeSongs(ids: [Int]) -> [Song] {
+        ids.map { Song.fixture(id: $0) }
     }
 
     func anyError() -> Error {
