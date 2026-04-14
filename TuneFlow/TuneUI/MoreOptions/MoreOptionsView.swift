@@ -50,7 +50,7 @@ struct MoreOptionsView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
+            .expandTappableArea()
             .padding(.horizontal, 32)
             .frame(height: 50)
         }

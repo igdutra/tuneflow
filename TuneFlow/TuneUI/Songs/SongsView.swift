@@ -21,7 +21,7 @@ struct SongsView: View {
                             artist: song.artistName,
                             onMoreTapped: { viewModel.showMoreOptions(for: song) }
                         )
-                        .contentShape(Rectangle())
+                        .expandTappableArea()
                         .onTapGesture {
                             viewModel.selectSong(song)
                         }
@@ -39,7 +39,7 @@ struct SongsView: View {
                     artist: song.artistName,
                     onMoreTapped: { viewModel.showMoreOptions(for: song) }
                 )
-                .contentShape(Rectangle())
+                .expandTappableArea()
                 .onTapGesture {
                     viewModel.selectSong(song)
                 }
