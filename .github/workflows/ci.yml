@@ -32,6 +32,6 @@ jobs:
           xcodebuild test \
             -project TuneFlow.xcodeproj \
             -scheme TuneFlow \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=26.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.1' \
             -resultBundlePath TestResults \
             CODE_SIGNING_ALLOWED=NO
