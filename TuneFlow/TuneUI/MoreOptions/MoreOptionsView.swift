@@ -28,7 +28,7 @@ struct MoreOptionsView: View {
 
     private var dragHandle: some View {
         RoundedRectangle(cornerRadius: 2)
-            .fill(Color(hex: "3A3A3C"))
+            .fill(.white.opacity(0.25))
             .frame(width: 32, height: 4)
             .padding(.top, 8)
             .padding(.bottom, 16)
@@ -37,11 +37,13 @@ struct MoreOptionsView: View {
     private var songHeader: some View {
         VStack(spacing: 4) {
             Text(viewModel.songTitle)
-                .font(.system(size: 17, weight: .semibold))
+                // Note: headline is 17, mockup asks for 18
+                .font(.headline)
                 .foregroundStyle(Color.white)
                 .multilineTextAlignment(.center)
             Text(viewModel.artistName)
-                .font(.system(size: 13, weight: .regular))
+                // Note: footnote is 13, mockup asks for 14
+                .font(.footnote.weight(.medium))
                 .foregroundStyle(Color.white)
                 .multilineTextAlignment(.center)
         }
@@ -51,16 +53,15 @@ struct MoreOptionsView: View {
     private var actionRows: some View {
         Button(action: viewModel.viewAlbum) {
             HStack(spacing: 16) {
-                Image(systemName: "music.note")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color.white)
-                    .frame(width: 20)
+                Image(.albumIcon)
+                    .frame(width: 24, height: 24)
+
                 Text("View album")
-                    .font(.system(size: 17, weight: .regular))
+                    .font(.callout.weight(.medium))
                     .foregroundStyle(Color.white)
                 Spacer()
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 32)
             .frame(height: 50)
         }
         .buttonStyle(.plain)

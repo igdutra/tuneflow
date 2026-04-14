@@ -57,7 +57,7 @@ struct SongsView: View {
             Task { await viewModel.loadRecentlyPlayed() }
         }
         .onScrollGeometryChange(for: Bool.self) { geometry in
-            geometry.contentOffset.y > 30
+            geometry.contentOffset.y > 20
         } action: { _, isCollapsed in
             withAnimation(.easeInOut(duration: 0.2)) {
                 showsCollapsedSearchButton = isCollapsed && !isSearchPresented
