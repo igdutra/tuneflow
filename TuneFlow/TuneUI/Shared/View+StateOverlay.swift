@@ -48,3 +48,71 @@ extension View {
             }
     }
 }
+
+#Preview("stateOverlay - Loading") {
+    List {
+        ForEach(1...10, id: \.self) { i in
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Song \(i)")
+                        .font(.body.weight(.medium))
+                    Text("Artist Name")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    .listStyle(.plain)
+    .background(Color.black)
+    .stateOverlay(state: .loading)
+}
+
+#Preview("stateOverlay - Error") {
+    List {
+        ForEach(1...10, id: \.self) { i in
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Song \(i)")
+                        .font(.body.weight(.medium))
+                    Text("Artist Name")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    .listStyle(.plain)
+    .background(Color.black)
+    .stateOverlay(
+        state: .error(URLError(.networkConnectionLost)),
+        errorTitle: "Network Error",
+        errorMessage: "Unable to load songs. Check your connection and try again.",
+        errorAction: .init(title: "Retry") { }
+    )
+}
+
+#Preview("stateOverlay - Loaded") {
+    List {
+        ForEach(1...10, id: \.self) { i in
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Song \(i)")
+                        .font(.body.weight(.medium))
+                    Text("Artist Name")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    .listStyle(.plain)
+    .background(Color.black)
+    .stateOverlay(state: .loaded)
+}
