@@ -53,6 +53,8 @@ struct MoreOptionsView: View {
             .frame(height: 50)
         }
         .buttonStyle(.plain)
+        .disabled(!viewModel.canViewAlbum)
+        .opacity(viewModel.canViewAlbum ? 1 : 0.5)
     }
 }
 
