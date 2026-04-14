@@ -63,12 +63,18 @@ struct SongsView: View {
                 showsCollapsedSearchButton = isCollapsed && !isSearchPresented
             }
         }
+        .overlay {
+            if viewModel.songs.isEmpty, !viewModel.searchText.isEmpty, viewModel.state.isLoaded {
+                ContentUnavailableView.search(text: viewModel.searchText)
+            }
+        }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Color.black)
-        // TODO: loading overlay — show ProgressView when viewModel.state.isLoading
-        // TODO: error overlay — show retry UI when viewModel.state.error != nil
-        // TODO: empty overlay — show ContentUnavailableView when songs are empty after search
+        .stateOverlay(
+            state: viewModel.state,
+            errorAction: .init(title: "Retry") { Task { await viewModel.search() } }
+        )
         .navigationTitle("Songs")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(.black, for: .navigationBar)
