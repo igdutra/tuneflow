@@ -24,6 +24,8 @@ struct AlbumView: View {
         .scrollContentBackground(.hidden)
         .stateOverlay(
             state: viewModel.state,
+            errorTitle: "Load Failed",
+            errorMessage: "Unable to load album. Check your connection and try again.",
             errorAction: .init(title: "Retry") { Task { await viewModel.load() } }
         )
         .navigationBarTitleDisplayMode(.inline)

@@ -73,6 +73,8 @@ struct SongsView: View {
         .background(Color.black)
         .stateOverlay(
             state: viewModel.state,
+            errorTitle: "Search Failed",
+            errorMessage: "Unable to search songs. Check your connection and try again.",
             errorAction: .init(title: "Retry") { Task { await viewModel.search() } }
         )
         .navigationTitle("Songs")
