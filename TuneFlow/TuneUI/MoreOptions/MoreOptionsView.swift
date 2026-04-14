@@ -11,28 +11,20 @@ struct MoreOptionsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            dragHandle
             songHeader
             actionRows
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, alignment: .top)
         // TODO: Investigate padding on this sheet
         // TODO: Maybe instead of hardcoded height do .fraction(0.25)
         .presentationDetents([.height(MoreOptionsView.compactSheetHeight)])
-        .presentationDragIndicator(.hidden)
+        .presentationDragIndicator(.visible)
         .presentationCornerRadius(12)
-        .presentationBackground(Color(hex: "2C2C2E"))
+        .presentationBackground(Color(hex: "262626").opacity(0.8))
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Subviews
-
-    private var dragHandle: some View {
-        RoundedRectangle(cornerRadius: 2)
-            .fill(.white.opacity(0.25))
-            .frame(width: 32, height: 4)
-            .padding(.top, 8)
-            .padding(.bottom, 16)
-    }
 
     private var songHeader: some View {
         VStack(spacing: 4) {
