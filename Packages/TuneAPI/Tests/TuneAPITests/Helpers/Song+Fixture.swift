@@ -6,8 +6,8 @@ extension Song {
         id: Int = 1,
         trackName: String = "Track Name",
         artistName: String = "Artist Name",
-        albumName: String = "Album Name",
-        collectionId: Int = 100,
+        albumName: String? = "Album Name",
+        collectionId: Int? = 100,
         artworkURL: URL = URL(string: "https://artwork.com/100x100.jpg")!,
         previewURL: URL? = URL(string: "https://preview.com/song.m4a"),
         trackNumber: Int? = 1

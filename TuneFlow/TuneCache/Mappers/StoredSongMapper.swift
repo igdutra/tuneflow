@@ -20,7 +20,7 @@ enum StoredSongMapper {
             trackName: stored.title,
             artistName: stored.artist,
             albumName: stored.albumName,
-            collectionId: 0,
+            collectionId: nil,
             artworkURL: stored.artworkUrl ?? stored.url,
             previewURL: stored.url,
             trackNumber: nil

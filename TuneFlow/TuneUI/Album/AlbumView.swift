@@ -22,8 +22,12 @@ struct AlbumView: View {
         }
         .background(Color.black)
         .scrollContentBackground(.hidden)
-        // TODO: loading overlay — show ProgressView when viewModel.state.isLoading
-        // TODO: error overlay — show retry UI when viewModel.state.error != nil
+        .stateOverlay(
+            state: viewModel.state,
+            errorTitle: "Load Failed",
+            errorMessage: "Unable to load album. Check your connection and try again.",
+            errorAction: .init(title: "Retry") { Task { await viewModel.load() } }
+        )
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.black, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -47,18 +51,18 @@ private struct AlbumHeroView: View {
             } placeholder: {
                 Color.gray.opacity(0.3)
             }
-            .frame(width: 200, height: 200)
+            .frame(width: 120, height: 120)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             Text(title)
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
 
             Text(artistName)
-                .font(.subheadline)
-                .foregroundStyle(Color(hex: "#737373"))
+                // Note: footnote is 13, mockup asks for 14
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 24)
@@ -98,12 +102,13 @@ private struct AlbumTrackRowView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(track.trackName)
-                    .font(.body)
+                    .font(.body.weight(.medium))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
                 Text(track.artistName)
-                    .font(.footnote)
+                    // Note: footnote is 13, mockup asks for 14
+                    .font(.footnote.weight(.medium))
                     .foregroundStyle(Color(hex: "#737373"))
                     .lineLimit(1)
             }

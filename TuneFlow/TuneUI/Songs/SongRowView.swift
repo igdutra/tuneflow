@@ -17,17 +17,17 @@ struct SongRowView: View {
                 Rectangle()
                     .foregroundStyle(Color(white: 0.2))
             }
-            .frame(width: 50, height: 50)
+            .frame(width: 52, height: 52)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.callout.weight(.medium))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
                 Text(artist)
-                    .font(.system(size: 12, weight: .regular))
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(Color(hex: "#737373"))
                     .lineLimit(1)
             }

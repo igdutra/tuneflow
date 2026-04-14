@@ -64,3 +64,5 @@ Shape-spec command was altered. Keeps the same shaping flow but adds stricter ex
 ### Custom Font
 
 Original Mockups used Articulat CF - DemiBold and Medium. We are not buying  for this project. The implementation should use native **SF** fonts for now. This is an execution tradeoff, not a design change: the typography layer can be swapped later with minimal code changes by replacing the font mappings in one place.
+
+We also prefer native semantic text styles (such as .body, .headline, and .caption) instead of hard-coded font sizes from Figma (for example, .system(size: 16, weight: .semibold)). This keeps the UI aligned with Apple platform conventions and ensures built-in support for Dynamic Type and accessibility from day one.

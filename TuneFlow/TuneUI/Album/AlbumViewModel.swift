@@ -28,8 +28,7 @@ final class AlbumViewModel {
             album = try await repository.fetchAlbum(collectionId: collectionId)
             state = .loaded
         } catch {
-            state = .error
-            // TODO: save error
+            state = .error(error)
         }
     }
 }

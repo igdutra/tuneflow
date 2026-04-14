@@ -9,6 +9,7 @@ final class MoreOptionsViewModel {
 
     var songTitle: String { song.trackName }
     var artistName: String { song.artistName }
+    var canViewAlbum: Bool { song.collectionId != nil }
 
     init(song: Song, router: AppRouter) {
         self.song = song
@@ -16,7 +17,8 @@ final class MoreOptionsViewModel {
     }
 
     func viewAlbum() {
+        guard let collectionId = song.collectionId else { return }
         router.dismissSheet()
-        router.push(.album(collectionId: song.collectionId))
+        router.push(.album(collectionId: collectionId))
     }
 }

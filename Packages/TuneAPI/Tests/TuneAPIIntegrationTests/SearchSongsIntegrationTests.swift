@@ -10,6 +10,7 @@ struct SearchSongsIntegrationTests {
     func search_withJackJohnsonQuery_returnsResults() async throws {
         let sut = makeSUT()
 
+        // url:  https://itunes.apple.com/search?term=Jack%20Johnson&media=music&limit=5&offset=0
         let results = try await sut.search(query: "Jack Johnson", limit: 5, offset: 0)
 
         #expect(results.isEmpty == false)
@@ -20,6 +21,7 @@ struct SearchSongsIntegrationTests {
     func fetchAlbum_withDaftPunkDiscovery_returnsAlbum() async throws {
         let sut = makeSUT()
 
+        // url: https://itunes.apple.com/lookup?id=697194953&entity=song
         let album = try await sut.fetchAlbum(collectionId: 697194953)
 
         #expect(album.title == "Discovery")

@@ -57,18 +57,26 @@ struct SongsView: View {
             Task { await viewModel.loadRecentlyPlayed() }
         }
         .onScrollGeometryChange(for: Bool.self) { geometry in
-            geometry.contentOffset.y > 30
+            geometry.contentOffset.y > 20
         } action: { _, isCollapsed in
             withAnimation(.easeInOut(duration: 0.2)) {
                 showsCollapsedSearchButton = isCollapsed && !isSearchPresented
             }
         }
+        .overlay {
+            if viewModel.songs.isEmpty, !viewModel.searchText.isEmpty, viewModel.state.isLoaded {
+                ContentUnavailableView.search(text: viewModel.searchText)
+            }
+        }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Color.black)
-        // TODO: loading overlay — show ProgressView when viewModel.state.isLoading
-        // TODO: error overlay — show retry UI when viewModel.state.error != nil
-        // TODO: empty overlay — show ContentUnavailableView when songs are empty after search
+        .stateOverlay(
+            state: viewModel.state,
+            errorTitle: "Search Failed",
+            errorMessage: "Unable to search songs. Check your connection and try again.",
+            errorAction: .init(title: "Retry") { Task { await viewModel.search() } }
+        )
         .navigationTitle("Songs")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(.black, for: .navigationBar)

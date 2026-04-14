@@ -2,7 +2,11 @@ import SwiftUI
 import TuneDomain
 
 struct PlayerView: View {
-    @Bindable var viewModel: PlayerViewModel
+    @State private var viewModel: PlayerViewModel
+
+    init(viewModel: PlayerViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
 
     var body: some View {
         ZStack {
@@ -29,7 +33,7 @@ struct PlayerView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(viewModel.song.albumName)
+                Text(viewModel.song.albumName ?? "Unknown Album")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.white)
             }
@@ -66,12 +70,13 @@ struct PlayerView: View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(viewModel.song.trackName)
-                    .font(.system(size: 32, weight: .bold))
+                    // Note: footnote is 34, mockup asks for 32
+                    .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
                 Text(viewModel.song.artistName)
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.body.weight(.medium))
                     .foregroundStyle(.white.opacity(0.7))
                     .lineLimit(1)
             }
