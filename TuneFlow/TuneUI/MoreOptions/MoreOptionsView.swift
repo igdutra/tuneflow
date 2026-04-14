@@ -49,6 +49,8 @@ struct MoreOptionsView: View {
                     .foregroundStyle(Color.white)
                 Spacer()
             }
+            .frame(maxWidth: .infinity)
+            .expandTappableArea()
             .padding(.horizontal, 32)
             .frame(height: 50)
         }

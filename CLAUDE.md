@@ -4,13 +4,28 @@ SwiftUI music discovery app for searching, browsing, and previewing tracks via t
 
 ## Structure
 
-- `TuneFlow/` — SwiftUI app target (entry point, views)
-- `TuneFlowTests/` — app-level test stubs
+- `TuneFlow/` — SwiftUI app target
+  - `TuneApp/` — entry point, DI wiring, composition root
+    - `Composers/` — `SongsComposer`, `PlayerComposer`, `AlbumComposer` (one per screen)
+    - `Navigation/` — `AppRouter`, `AppRoute`, `AppSheet`
+    - `Analytics/` — `InMemoryAnalyticsTracker`, `PlayerEvent`
+    - `AVAudioPlayerService/` — `AVAudioPlayerService` (concrete audio implementation)
+    - `LogHandling/` — `OSLogger`
+  - `TuneUI/` — SwiftUI views and view models
+    - `Shared/` — `ViewState`, `View+StateOverlay`, `ErrorView`
+    - `Songs/`, `Album/`, `Player/`, `MoreOptions/` — feature screens
+  - `TuneCache/` — SwiftData persistence layer
+    - `Store/` — `SwiftDataRecentlyPlayedStore` (`@ModelActor`)
+    - `Models/` — `StoredSong`, `StoredPlayHistory`
+    - `Repositories/` — `LocalRecentlyPlayedRepository`
+    - `Mappers/` — `StoredSongMapper`
+- `TuneFlowTests/` — app-level tests (Swift Testing)
+  - `Helpers/` — Spy objects and fixtures (`SongRepositorySpy`, `AudioPlayerServiceSpy`, etc.)
 - `Packages/TuneAPI/` — networking package; hits iTunes Search API, maps responses to domain models
-  - `Sources/TuneAPI/` — `RemoteSongRepository`, `URLSessionHTTPClient`, DTOs, mapper
+  - `Sources/TuneAPI/` — `RemoteSongRepository`, `URLSessionHTTPClient`, DTOs, mappers
   - `Tests/TuneAPITests/` — unit tests (Swift Testing)
   - `Tests/TuneAPIIntegrationTests/` — integration tests against the real API
-- `Packages/TuneDomain/` — pure domain models and repository protocols (`Song`, `SongRepository`)
+- `Packages/TuneDomain/` — pure domain models and repository protocols (`Song`, `Album`, `SongRepository`, `RecentlyPlayedRepository`, `EventTracker`)
 - `agent-os/` — AgentOS specs and standards
 
 ## Rules

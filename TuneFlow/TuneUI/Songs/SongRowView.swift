@@ -8,7 +8,7 @@ struct SongRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // TODO: For custom image cache strategy we could create our own component and image loader component (with cache)
+            // TODO: JIRA-3 For custom image cache strategy we could create our own component and image loader component (with cache)
             AsyncImage(url: artworkURL) { image in
                 image
                     .resizable()
