@@ -14,13 +14,9 @@ struct MoreOptionsView: View {
             songHeader
             actionRows
         }
-        .frame(maxWidth: .infinity, alignment: .top)
-        // TODO: Investigate padding on this sheet
-        // TODO: Maybe instead of hardcoded height do .fraction(0.25)
+        .frame(maxWidth: .infinity, alignment: .bottom)
         .presentationDetents([.height(MoreOptionsView.compactSheetHeight)])
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(12)
-        .presentationBackground(Color(hex: "262626").opacity(0.8))
         .preferredColorScheme(.dark)
     }
 
