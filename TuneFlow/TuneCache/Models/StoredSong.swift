@@ -6,7 +6,7 @@ final class StoredSong {
     @Attribute(.unique) var id: Int
     var title: String
     var artist: String
-    var albumName: String
+    var albumName: String?
     var url: URL
     var artworkUrl: URL?
     var lastPlayedAt: Date
@@ -16,7 +16,7 @@ final class StoredSong {
         id: Int,
         title: String,
         artist: String,
-        albumName: String,
+        albumName: String?,
         url: URL,
         artworkUrl: URL?,
         lastPlayedAt: Date

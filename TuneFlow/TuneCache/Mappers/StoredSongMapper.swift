@@ -7,7 +7,7 @@ enum StoredSongMapper {
             id: song.id,
             title: song.trackName,
             artist: song.artistName,
-            albumName: song.albumName ?? "Unknown Album",
+            albumName: song.albumName,
             url: song.previewURL ?? song.artworkURL,
             artworkUrl: song.artworkURL,
             lastPlayedAt: Date()
@@ -20,7 +20,7 @@ enum StoredSongMapper {
             trackName: stored.title,
             artistName: stored.artist,
             albumName: stored.albumName,
-            collectionId: 0,
+            collectionId: nil,
             artworkURL: stored.artworkUrl ?? stored.url,
             previewURL: stored.url,
             trackNumber: nil
