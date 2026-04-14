@@ -45,6 +45,7 @@ struct StoredSongMapperTests {
         #expect(domain.trackName == song.trackName)
         #expect(domain.artistName == song.artistName)
         #expect(domain.albumName == song.albumName)
+        #expect(domain.collectionId == song.collectionId)
         #expect(domain.artworkURL == song.artworkURL)
         #expect(domain.previewURL == song.previewURL)
     }

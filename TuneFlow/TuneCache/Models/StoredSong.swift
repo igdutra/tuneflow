@@ -7,6 +7,7 @@ final class StoredSong {
     var title: String
     var artist: String
     var albumName: String?
+    var collectionId: Int?
     var url: URL
     var artworkUrl: URL?
     var lastPlayedAt: Date
@@ -17,6 +18,7 @@ final class StoredSong {
         title: String,
         artist: String,
         albumName: String?,
+        collectionId: Int?,
         url: URL,
         artworkUrl: URL?,
         lastPlayedAt: Date
@@ -25,6 +27,7 @@ final class StoredSong {
         self.title = title
         self.artist = artist
         self.albumName = albumName
+        self.collectionId = collectionId
         self.url = url
         self.artworkUrl = artworkUrl
         self.lastPlayedAt = lastPlayedAt
