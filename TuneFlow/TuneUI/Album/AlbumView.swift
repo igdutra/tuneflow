@@ -22,8 +22,10 @@ struct AlbumView: View {
         }
         .background(Color.black)
         .scrollContentBackground(.hidden)
-        // TODO: loading overlay — show ProgressView when viewModel.state.isLoading
-        // TODO: error overlay — show retry UI when viewModel.state.error != nil
+        .stateOverlay(
+            state: viewModel.state,
+            errorAction: .init(title: "Retry") { Task { await viewModel.load() } }
+        )
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.black, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
