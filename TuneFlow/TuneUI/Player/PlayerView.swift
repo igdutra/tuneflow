@@ -33,7 +33,7 @@ struct PlayerView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(viewModel.song.albumName)
+                Text(viewModel.song.albumName ?? "Unknown Album")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.white)
             }
